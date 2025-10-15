@@ -93,7 +93,9 @@ The alert includes a countdown timer showing exactly how much time is left until
     - Open the `.env` file from the previous steps
     - Set `DISCORD_ENABLED` to 'true'
     - Set `DISCORD_WEBHOOK_URL` to the webhook you copied in step 4
+    
     Your `.env` file should look like this:
+    
     ```
     GITHUB_USERNAME="<YOUR_USERNAME>"
     GITHUB_PAT="<YOUR_PERSONAL_ACCESS_TOKEN>"
