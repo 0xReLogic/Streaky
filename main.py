@@ -64,6 +64,28 @@ def get_todays_contribution_count(username, token):
     except Exception as e:
         print(f"An unexpected error occurred: {e}")
         return None
+    
+def invoke_discord_webhook(now_utc, hours, minutes):
+    DISCORD_WEBHOOK_URL = os.getenv("DISCORD_WEBHOOK_URL")
+    request_data = {
+        "embeds": [
+            {
+                "title": "⚠️ GitHub Streak Alert",
+                "description": (
+                    f"You have 0 contributions today ({now_utc:%Y-%m-%d}).\n"
+                    f"Time remaining: {hours} hours, {minutes} minutes.\n\n"
+                    "Push a commit soon to keep your streak alive! 🔥"
+                ),
+                "color": 15158332,
+                "fields": [
+                    {"name": "Username", "value": GITHUB_USERNAME, "inline": True},
+                    {"name": "Current Streak", "value": "42 days", "inline": True},
+                ],
+                "footer": {"text": "GitHub Streak Alert"},
+                "timestamp": now_utc.isoformat(),
+            }
+        ],
+    }
 
 def main():
     today_utc_str = datetime.now(timezone.utc).strftime('%Y-%m-%d')
