@@ -17,10 +17,15 @@ const user = new Hono<{ Bindings: Env }>();
 user.post('/preferences', async (c) => {
   try {
     const body = await c.req.json();
-    const { userId, discordWebhook, telegramToken, telegramChatId } = body;
+    const { userId, githubPat, discordWebhook, telegramToken, telegramChatId } = body;
 
     if (!userId) {
       return c.json({ error: 'User ID is required' }, 400);
+    }
+
+    // Validate GitHub PAT format
+    if (githubPat && !/^(ghp|github_pat)_\w+$/.test(githubPat)) {
+      return c.json({ error: 'Invalid GitHub Personal Access Token format' }, 400);
     }
 
     // Validate Discord webhook URL
@@ -40,6 +45,7 @@ user.post('/preferences', async (c) => {
     // Encrypt sensitive data
     const encryptionService = await createEncryptionService(c.env.ENCRYPTION_KEY);
     
+    const encryptedGithubPat = githubPat ? await encryptionService.encrypt(githubPat) : null;
     const encryptedDiscord = discordWebhook ? await encryptionService.encrypt(discordWebhook) : null;
     const encryptedTelegramToken = telegramToken ? await encryptionService.encrypt(telegramToken) : null;
     const encryptedTelegramChatId = telegramChatId ? await encryptionService.encrypt(telegramChatId) : null;
@@ -47,12 +53,14 @@ user.post('/preferences', async (c) => {
     // Update user preferences in database
     await c.env.DB.prepare(`
       UPDATE users 
-      SET discord_webhook = ?, 
+      SET github_pat = ?,
+          discord_webhook = ?, 
           telegram_token = ?, 
           telegram_chat_id = ?,
           updated_at = datetime('now')
       WHERE id = ?
     `).bind(
+      encryptedGithubPat,
       encryptedDiscord,
       encryptedTelegramToken,
       encryptedTelegramChatId,
@@ -94,8 +102,19 @@ user.get('/dashboard', async (c) => {
 
     const user = userResult as any;
 
-    // Fetch GitHub data
-    const githubService = createCachedGitHubService(c.env.GITHUB_CLIENT_SECRET, 5);
+    // Check if user has GitHub PAT
+    if (!user.github_pat) {
+      return c.json({ 
+        error: 'GitHub Personal Access Token not configured. Please add it in settings.' 
+      }, 400);
+    }
+
+    // Decrypt GitHub PAT
+    const encryptionService = await createEncryptionService(c.env.ENCRYPTION_KEY);
+    const decryptedPat = await encryptionService.decrypt(user.github_pat);
+
+    // Fetch GitHub data using user's PAT
+    const githubService = createCachedGitHubService(decryptedPat, 5);
     
     const [contributionsToday, currentStreak] = await Promise.all([
       githubService.getContributionsToday(user.github_username),

@@ -8,6 +8,7 @@ export interface User {
   github_username: string;
   github_id: string;
   email: string | null;
+  github_pat: string | null;
   discord_webhook: string | null;
   telegram_token: string | null;
   telegram_chat_id: string | null;
@@ -33,6 +34,7 @@ export interface CreateUserInput {
   github_username: string;
   github_id: string;
   email?: string;
+  github_pat?: string;
   discord_webhook?: string;
   telegram_token?: string;
   telegram_chat_id?: string;
@@ -50,6 +52,7 @@ export interface CreateNotificationInput {
  * Update types for modifying existing records
  */
 export interface UpdateUserInput {
+  github_pat?: string;
   discord_webhook?: string;
   telegram_token?: string;
   telegram_chat_id?: string;

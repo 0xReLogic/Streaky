@@ -12,6 +12,7 @@ import { createNotificationService } from '../services/notifications';
 interface User {
   id: string;
   github_username: string;
+  github_pat: string | null;
   discord_webhook: string | null;
   telegram_token: string | null;
   telegram_chat_id: string | null;
@@ -24,11 +25,11 @@ export async function checkAllUsersStreaks(env: Env): Promise<void> {
   console.log('[Cron] Starting streak check at', new Date().toISOString());
 
   try {
-    // Fetch all active users
+    // Fetch all active users with GitHub PAT configured
     const usersResult = await env.DB.prepare(`
-      SELECT id, github_username, discord_webhook, telegram_token, telegram_chat_id
+      SELECT id, github_username, github_pat, discord_webhook, telegram_token, telegram_chat_id
       FROM users
-      WHERE is_active = 1
+      WHERE is_active = 1 AND github_pat IS NOT NULL
     `).all();
 
     const users = (usersResult.results || []) as unknown as User[];
@@ -41,7 +42,6 @@ export async function checkAllUsersStreaks(env: Env): Promise<void> {
 
     // Initialize services
     const encryptionService = await createEncryptionService(env.ENCRYPTION_KEY);
-    const githubService = createCachedGitHubService(env.GITHUB_CLIENT_SECRET, 5);
     const notificationService = createNotificationService();
 
     let checkedCount = 0;
@@ -52,6 +52,18 @@ export async function checkAllUsersStreaks(env: Env): Promise<void> {
     for (const user of users) {
       try {
         checkedCount++;
+
+        // Skip if user doesn't have GitHub PAT
+        if (!user.github_pat) {
+          console.log(`[Cron] User ${user.github_username} has no GitHub PAT - skipping`);
+          continue;
+        }
+
+        // Decrypt user's GitHub PAT
+        const decryptedPat = await encryptionService.decrypt(user.github_pat);
+        
+        // Create GitHub service with user's PAT
+        const githubService = createCachedGitHubService(decryptedPat, 5);
 
         // Check if user has contributed today
         const contributionsToday = await githubService.getContributionsToday(user.github_username);
