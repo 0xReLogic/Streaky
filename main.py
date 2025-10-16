@@ -105,7 +105,7 @@ def invoke_discord_webhook(webhook, now_utc, hours, minutes):
         print(e)
     except Exception as e:
         print(DISCORD_ERROR)
-        print(f'Unexpected Error Occured: {e}')
+        print(f'Unexpected Error Occurred: {e}')
 
 def main():
     today_utc_str = datetime.now(timezone.utc).strftime('%Y-%m-%d')
