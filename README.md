@@ -82,6 +82,27 @@ The alert includes a countdown timer showing exactly how much time is left until
     GITHUB_PAT="<YOUR_PERSONAL_ACCESS_TOKEN>"
     ```
 
+4. **(Optional) Setup Discord Webhook:**
+    - Go to a server you own or have the **Manage Webhook** permission in
+    - Go to **Server Settings** and under **Apps** go to **Integrations**
+    - Go into the **Webhooks** menu and click **New Webhook**
+    - Give your new webhook a name and choose the channel it will send the notification in
+    - Click **Copy Webhook URL**
+
+5. **(Optional) Edit the `.env` file (Discord setup continued):**
+    - Open the `.env` file from the previous steps
+    - Set `DISCORD_ENABLED` to 'true'
+    - Set `DISCORD_WEBHOOK_URL` to the webhook you copied in step 4
+    
+    Your `.env` file should look like this:
+    
+    ```
+    GITHUB_USERNAME="<YOUR_USERNAME>"
+    GITHUB_PAT="<YOUR_PERSONAL_ACCESS_TOKEN>"
+    DISCORD_ENABLED=true
+    DISCORD_WEBHOOK_URL="<YOUR_WEBHOOK_URL>"
+    ```
+
 ### 4. Test the Script
 
 Run the script manually to make sure everything is working correctly.
