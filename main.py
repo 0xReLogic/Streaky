@@ -70,8 +70,9 @@ def get_todays_contribution_count(username, token):
         return None
     
 def invoke_discord_webhook(webhook, now_utc, hours, minutes):
+    DISCORD_ERROR = "\nDiscord Notification Failed"
     if not webhook:
-        print("\nDiscord Notification Failed")
+        print(DISCORD_ERROR)
         print("Discord Webhook URL is not set in .env")
         return
     request_data = {
@@ -97,13 +98,13 @@ def invoke_discord_webhook(webhook, now_utc, hours, minutes):
         if r.status_code == 204:
             print("\nSent Discord Notification Successfully!")
         else:
-            print("\nDiscord Notification Failed")
+            print(DISCORD_ERROR)
             print("Check webhook URL is correct")
             r.raise_for_status()
     except requests.exceptions.RequestException as e:
         print(e)
     except Exception as e:
-        print("\nDiscord Notification Failed")
+        print(DISCORD_ERROR)
         print(f'Unexpected Error Occured: {e}')
 
 def main():
