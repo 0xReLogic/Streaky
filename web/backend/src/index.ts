@@ -1,18 +1,39 @@
 /**
- * Welcome to Cloudflare Workers! This is your first worker.
- *
- * - Run `npm run dev` in your terminal to start a development server
- * - Open a browser tab at http://localhost:8787/ to see your worker in action
- * - Run `npm run deploy` to publish your worker
- *
- * Bind resources to your worker in `wrangler.jsonc`. After adding bindings, a type definition for the
- * `Env` object can be regenerated with `npm run cf-typegen`.
- *
- * Learn more at https://developers.cloudflare.com/workers/
+ * Streaky Backend API
+ * Cloudflare Worker with Hono framework
  */
 
-export default {
-	async fetch(request, env, ctx): Promise<Response> {
-		return new Response('Hello World!');
-	},
-} satisfies ExportedHandler<Env>;
+import { Hono } from 'hono';
+import { Env } from './types/env';
+import { corsMiddleware } from './middleware/cors';
+import userRoutes from './routes/user';
+
+const app = new Hono<{ Bindings: Env }>();
+
+// Apply CORS middleware
+app.use('*', corsMiddleware);
+
+// Health check endpoint
+app.get('/', (c) => {
+  return c.json({
+    name: 'Streaky API',
+    version: '1.0.0',
+    status: 'healthy',
+  });
+});
+
+// Mount user routes
+app.route('/api/user', userRoutes);
+
+// 404 handler
+app.notFound((c) => {
+  return c.json({ error: 'Not found' }, 404);
+});
+
+// Error handler
+app.onError((err, c) => {
+  console.error('Unhandled error:', err);
+  return c.json({ error: 'Internal server error' }, 500);
+});
+
+export default app;
