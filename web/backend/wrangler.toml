@@ -15,9 +15,9 @@ binding = "DB"
 database_name = "streaky-db"
 database_id = "f746bca3-44f6-4163-becf-1aecaa2a02c2"
 
-# Cron Triggers (will be configured in Task 7)
-# [triggers]
-# crons = ["0 20 * * *"]  # Daily at 8 PM UTC
+# Cron Triggers - Daily at 8 PM UTC
+[triggers]
+crons = ["0 20 * * *"]
 
 # Environment Variables (non-sensitive)
 # [vars]

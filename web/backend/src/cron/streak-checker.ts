@@ -1,0 +1,184 @@
+/**
+ * Streak Checker Cron Job
+ * Runs daily at 8 PM UTC to check all users' GitHub contributions
+ * Sends notifications if no contributions made today
+ */
+
+import { Env } from '../types/env';
+import { createEncryptionService } from '../services/encryption';
+import { createCachedGitHubService } from '../services/github-cached';
+import { createNotificationService } from '../services/notifications';
+
+interface User {
+  id: string;
+  github_username: string;
+  discord_webhook: string | null;
+  telegram_token: string | null;
+  telegram_chat_id: string | null;
+}
+
+/**
+ * Check all users' streaks and send notifications
+ */
+export async function checkAllUsersStreaks(env: Env): Promise<void> {
+  console.log('[Cron] Starting streak check at', new Date().toISOString());
+
+  try {
+    // Fetch all active users
+    const usersResult = await env.DB.prepare(`
+      SELECT id, github_username, discord_webhook, telegram_token, telegram_chat_id
+      FROM users
+      WHERE is_active = 1
+    `).all();
+
+    const users = (usersResult.results || []) as unknown as User[];
+    console.log(`[Cron] Found ${users.length} active users to check`);
+
+    if (users.length === 0) {
+      console.log('[Cron] No active users found');
+      return;
+    }
+
+    // Initialize services
+    const encryptionService = await createEncryptionService(env.ENCRYPTION_KEY);
+    const githubService = createCachedGitHubService(env.GITHUB_CLIENT_SECRET, 5);
+    const notificationService = createNotificationService();
+
+    let checkedCount = 0;
+    let notifiedCount = 0;
+    let errorCount = 0;
+
+    // Process each user
+    for (const user of users) {
+      try {
+        checkedCount++;
+
+        // Check if user has contributed today
+        const contributionsToday = await githubService.getContributionsToday(user.github_username);
+
+        // If user has contributed, skip notification
+        if (contributionsToday > 0) {
+          console.log(`[Cron] User ${user.github_username} has ${contributionsToday} contributions today - skipping`);
+          continue;
+        }
+
+        console.log(`[Cron] User ${user.github_username} has 0 contributions today - sending notifications`);
+
+        // Get current streak for notification message
+        const currentStreak = await githubService.getCurrentStreak(user.github_username);
+
+        const notificationMessage = {
+          username: user.github_username,
+          currentStreak,
+          message: `You have not made any contributions today! Your ${currentStreak}-day streak is at risk. Make a commit to keep it alive!`,
+        };
+
+        // Send Discord notification if configured
+        if (user.discord_webhook) {
+          try {
+            const decryptedWebhook = await encryptionService.decrypt(user.discord_webhook);
+            const discordResult = await notificationService.sendDiscordNotification(
+              decryptedWebhook,
+              notificationMessage
+            );
+
+            // Log notification result
+            await logNotification(
+              env,
+              user.id,
+              'discord',
+              discordResult.success ? 'sent' : 'failed',
+              discordResult.error
+            );
+
+            if (discordResult.success) {
+              notifiedCount++;
+              console.log(`[Cron] Discord notification sent to ${user.github_username}`);
+            } else {
+              errorCount++;
+              console.error(`[Cron] Discord notification failed for ${user.github_username}:`, discordResult.error);
+            }
+          } catch (error) {
+            errorCount++;
+            console.error(`[Cron] Error sending Discord notification to ${user.github_username}:`, error);
+          }
+        }
+
+        // Send Telegram notification if configured
+        if (user.telegram_token && user.telegram_chat_id) {
+          try {
+            const decryptedToken = await encryptionService.decrypt(user.telegram_token);
+            const decryptedChatId = await encryptionService.decrypt(user.telegram_chat_id);
+            const telegramResult = await notificationService.sendTelegramNotification(
+              decryptedToken,
+              decryptedChatId,
+              notificationMessage
+            );
+
+            // Log notification result
+            await logNotification(
+              env,
+              user.id,
+              'telegram',
+              telegramResult.success ? 'sent' : 'failed',
+              telegramResult.error
+            );
+
+            if (telegramResult.success) {
+              notifiedCount++;
+              console.log(`[Cron] Telegram notification sent to ${user.github_username}`);
+            } else {
+              errorCount++;
+              console.error(`[Cron] Telegram notification failed for ${user.github_username}:`, telegramResult.error);
+            }
+          } catch (error) {
+            errorCount++;
+            console.error(`[Cron] Error sending Telegram notification to ${user.github_username}:`, error);
+          }
+        }
+      } catch (error) {
+        errorCount++;
+        console.error(`[Cron] Error processing user ${user.github_username}:`, error);
+        // Continue processing other users
+      }
+    }
+
+    console.log(`[Cron] Streak check completed:`, {
+      totalUsers: users.length,
+      checked: checkedCount,
+      notificationsSent: notifiedCount,
+      errors: errorCount,
+    });
+  } catch (error) {
+    console.error('[Cron] Fatal error in streak checker:', error);
+    throw error;
+  }
+}
+
+/**
+ * Log notification to database
+ */
+async function logNotification(
+  env: Env,
+  userId: string,
+  channel: 'discord' | 'telegram',
+  status: 'sent' | 'failed',
+  errorMessage?: string
+): Promise<void> {
+  try {
+    const notificationId = crypto.randomUUID();
+    await env.DB.prepare(`
+      INSERT INTO notifications (id, user_id, channel, status, error_message)
+      VALUES (?, ?, ?, ?, ?)
+    `).bind(
+      notificationId,
+      userId,
+      channel,
+      status,
+      errorMessage || null
+    ).run();
+  } catch (error) {
+    console.error('[Cron] Error logging notification:', error);
+    // Don't throw - logging failure shouldn't stop the cron job
+  }
+}
