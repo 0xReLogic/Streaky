@@ -9,9 +9,7 @@ export interface Env {
 
   // Environment variables (secrets)
   ENCRYPTION_KEY: string;
-  GITHUB_CLIENT_ID: string;
-  GITHUB_CLIENT_SECRET: string;
 
-  // Optional: KV namespace for caching (will be added in Task 4)
+  // Optional: KV namespace for caching (can be added later for better performance)
   // CACHE: KVNamespace;
 }

@@ -5,6 +5,5 @@
 # Encryption key for storing sensitive user data (32 characters minimum)
 ENCRYPTION_KEY=your-32-character-encryption-key-here
 
-# GitHub OAuth credentials
-GITHUB_CLIENT_ID=your-github-oauth-client-id
-GITHUB_CLIENT_SECRET=your-github-oauth-client-secret
+# Note: GitHub OAuth credentials are only needed in the frontend (Next.js)
+# Users provide their own GitHub PAT in the setup page
