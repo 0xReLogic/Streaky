@@ -1,0 +1,29 @@
+# Cloudflare Worker Configuration for Streaky Backend
+# https://developers.cloudflare.com/workers/wrangler/configuration/
+
+name = "streaky"
+main = "src/index.ts"
+compatibility_date = "2025-10-11"
+
+# Observability
+[observability]
+enabled = true
+
+# D1 Database Binding
+[[d1_databases]]
+binding = "DB"
+database_name = "streaky-db"
+database_id = "f746bca3-44f6-4163-becf-1aecaa2a02c2"
+
+# Cron Triggers (will be configured in Task 7)
+# [triggers]
+# crons = ["0 20 * * *"]  # Daily at 8 PM UTC
+
+# Environment Variables (non-sensitive)
+# [vars]
+# ENVIRONMENT = "production"
+
+# Secrets (use: wrangler secret put <KEY>)
+# - ENCRYPTION_KEY
+# - GITHUB_CLIENT_ID
+# - GITHUB_CLIENT_SECRET

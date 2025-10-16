@@ -1,0 +1,29 @@
+{
+  "name": "streaky-web",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Streaky Web Application - Never lose your GitHub streak again",
+  "workspaces": [
+    "frontend",
+    "backend"
+  ],
+  "scripts": {
+    "dev:frontend": "npm run dev --workspace=frontend",
+    "dev:backend": "npm run start --workspace=backend",
+    "dev": "concurrently \"npm run dev:frontend\" \"npm run dev:backend\"",
+    "build:frontend": "npm run build --workspace=frontend",
+    "build:backend": "npm run build --workspace=backend",
+    "build": "npm run build:frontend && npm run build:backend",
+    "deploy:frontend": "npm run deploy --workspace=frontend",
+    "deploy:backend": "npm run deploy --workspace=backend",
+    "lint": "npm run lint --workspaces",
+    "type-check": "npm run type-check --workspaces --if-present"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  }
+}

@@ -1,0 +1,10 @@
+# Cloudflare Worker Development Environment Variables
+# Copy this file to .dev.vars and fill in your values
+# DO NOT commit .dev.vars to git!
+
+# Encryption key for storing sensitive user data (32 characters minimum)
+ENCRYPTION_KEY=your-32-character-encryption-key-here
+
+# GitHub OAuth credentials
+GITHUB_CLIENT_ID=your-github-oauth-client-id
+GITHUB_CLIENT_SECRET=your-github-oauth-client-secret

@@ -1,7 +1,8 @@
 # Environment variables
 .env
+.env*.local
 
-# Python cache
+# Python cache (CLI folder)
 __pycache__/
 *.pyc
 *.pyo
@@ -10,6 +11,4 @@ __pycache__/
 # IDE specific
 .vscode/
 .idea/
-
-# Kiro memory backup (local only)
-KIRO_MEMORY_BACKUP.md
+.kiro
