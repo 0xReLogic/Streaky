@@ -10,3 +10,6 @@ __pycache__/
 # IDE specific
 .vscode/
 .idea/
+
+# Kiro memory backup (local only)
+KIRO_MEMORY_BACKUP.md
