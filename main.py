@@ -138,7 +138,7 @@ def main():
 
     # Footer watermark
     print("\nProject: https://github.com/0xReLogic/github-streak-alert")
-    print("Made with ❤️  Allen Elzayn")
+    print("Made with ❤️  by the GitHub Streak Alert contributors")
 
 if __name__ == "__main__":
     main()

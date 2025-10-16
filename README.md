@@ -166,6 +166,17 @@ To make this a true alert system, you need to schedule it to run automatically e
 
 ---
 
+## Contributors
+
+Thanks to all the amazing people who have contributed to GitHub Streak Alert! 
+
+<a href="https://github.com/0xReLogic/github-streak-alert/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=0xReLogic/github-streak-alert" />
+</a>
+
+
+---
+
 ## License
 
 This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
