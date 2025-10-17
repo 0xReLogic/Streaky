@@ -13,13 +13,15 @@ const ALLOWED_ORIGINS = new Set([
 
 /**
  * CORS middleware for API routes
+ * SECURITY: Only allow explicitly whitelisted origins
  */
 export async function corsMiddleware(c: Context, next: Next) {
 	const origin = c.req.header('Origin');
 
-	// Check if origin is allowed
-	if (origin && (ALLOWED_ORIGINS.has(origin) || origin.endsWith('.vercel.app'))) {
+	// SECURITY: Strict origin checking - NO wildcards
+	if (origin && ALLOWED_ORIGINS.has(origin)) {
 		c.header('Access-Control-Allow-Origin', origin);
+		c.header('Vary', 'Origin');
 	}
 
 	c.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');

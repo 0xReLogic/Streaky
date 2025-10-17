@@ -109,39 +109,16 @@ export async function authMiddleware(c: Context<{ Bindings: Env; Variables: { us
 	const token = authHeader.substring(7);
 
 	try {
-		let decoded: JWTPayload;
-
-		// Try signature verification if NEXTAUTH_SECRET is configured
-		if (c.env.NEXTAUTH_SECRET) {
-			try {
-				decoded = await verifyJWT(token, c.env.NEXTAUTH_SECRET);
-			} catch (verifyError) {
-				console.warn('JWT signature verification failed, falling back to decode-only:', verifyError);
-				// Fallback: decode without verification
-				const parts = token.split('.');
-				if (parts.length !== 3) {
-					return c.json({ error: 'Invalid JWT format' }, 401);
-				}
-				const payloadB64 = parts[1];
-				const payloadJson = atob(payloadB64.replaceAll('-', '+').replaceAll('_', '/'));
-				decoded = JSON.parse(payloadJson);
-			}
-		} else {
-			// No secret configured, decode without verification
-			const parts = token.split('.');
-			if (parts.length !== 3) {
-				return c.json({ error: 'Invalid JWT format' }, 401);
-			}
-			const payloadB64 = parts[1];
-			const payloadJson = atob(payloadB64.replaceAll('-', '+').replaceAll('_', '/'));
-			decoded = JSON.parse(payloadJson);
+		// SECURITY: NEXTAUTH_SECRET is REQUIRED for JWT verification
+		if (!c.env.NEXTAUTH_SECRET) {
+			console.error('[SECURITY] NEXTAUTH_SECRET not configured - JWT authentication disabled');
+			return c.json({ error: 'Server configuration error' }, 500);
 		}
 
-		// Check expiration
-		if (decoded.exp && decoded.exp < Date.now() / 1000) {
-			return c.json({ error: 'JWT token expired' }, 401);
-		}
+		// Verify JWT signature - NO fallback to unverified tokens
+		const decoded = await verifyJWT(token, c.env.NEXTAUTH_SECRET);
 
+		// Validate required fields
 		if (!decoded.sub) {
 			return c.json({ error: 'Invalid token payload - missing user ID' }, 401);
 		}
@@ -161,8 +138,9 @@ export async function authMiddleware(c: Context<{ Bindings: Env; Variables: { us
 
 		await next();
 	} catch (error) {
-		console.error('Auth error:', error);
-		return c.json({ error: 'Invalid or expired token' }, 401);
+		// Don't leak error details to client
+		console.error('[Auth] Token verification failed:', error instanceof Error ? error.message : error);
+		return c.json({ error: 'Authentication failed' }, 401);
 	}
 }
 
