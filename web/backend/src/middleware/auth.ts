@@ -105,14 +105,28 @@ export async function authMiddleware(c: Context<{ Bindings: Env; Variables: { us
   try {
     const decoded = await verifyJWT(token, c.env.NEXTAUTH_SECRET);
 
-    if (!decoded.sub || !decoded.login) {
-      return c.json({ error: 'Invalid token payload' }, 401);
+    if (!decoded.sub) {
+      return c.json({ error: 'Invalid token payload - missing user ID' }, 401);
+    }
+
+    // Fallback: if login is missing, try to get from database using sub (user ID)
+    let githubUsername = decoded.login;
+    if (!githubUsername) {
+      const userRecord = await c.env.DB.prepare(
+        'SELECT github_username FROM users WHERE id = ?'
+      ).bind(decoded.sub).first();
+      
+      if (userRecord) {
+        githubUsername = (userRecord as any).github_username;
+      } else {
+        return c.json({ error: 'Invalid token payload - missing GitHub username' }, 401);
+      }
     }
 
     // Attach user info to context
     const user: AuthUser = {
       id: decoded.sub,
-      githubUsername: decoded.login,
+      githubUsername: githubUsername,
       email: decoded.email,
     };
 
