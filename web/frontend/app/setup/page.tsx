@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -16,8 +17,6 @@ export default function SetupPage() {
   const [telegramToken, setTelegramToken] = useState("");
   const [telegramChatId, setTelegramChatId] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState("");
-  const [success, setSuccess] = useState(false);
 
   // Redirect if not authenticated
   if (status === "loading") {
@@ -36,40 +35,52 @@ export default function SetupPage() {
   const validateForm = () => {
     // GitHub PAT validation (required)
     if (!githubPat || githubPat.trim().length === 0) {
-      setError("GitHub Personal Access Token is required");
+      toast.error("GitHub Personal Access Token is required");
       return false;
     }
 
     if (!githubPat.startsWith("ghp_") && !githubPat.startsWith("github_pat_")) {
-      setError("Invalid GitHub PAT format. Must start with 'ghp_' or 'github_pat_'");
+      toast.error(
+        "Invalid GitHub PAT format. Must start with 'ghp_' or 'github_pat_'"
+      );
       return false;
     }
 
     // Discord webhook validation (optional)
-    if (discordWebhook && !discordWebhook.match(/^https:\/\/discord\.com\/api\/webhooks\/\d+\/.+$/)) {
-      setError("Invalid Discord webhook URL format");
+    if (
+      discordWebhook &&
+      !discordWebhook.match(/^https:\/\/discord\.com\/api\/webhooks\/\d+\/.+$/)
+    ) {
+      toast.error("Invalid Discord webhook URL format");
       return false;
     }
 
     // Telegram validation (both or neither)
-    if ((telegramToken && !telegramChatId) || (!telegramToken && telegramChatId)) {
-      setError("Both Telegram bot token and chat ID are required if using Telegram");
+    if (
+      (telegramToken && !telegramChatId) ||
+      (!telegramToken && telegramChatId)
+    ) {
+      toast.error(
+        "Both Telegram bot token and chat ID are required if using Telegram"
+      );
       return false;
     }
 
     if (telegramToken && !telegramToken.match(/^\d+:[A-Za-z0-9_-]+$/)) {
-      setError("Invalid Telegram bot token format");
+      toast.error("Invalid Telegram bot token format");
       return false;
     }
 
     if (telegramChatId && !telegramChatId.match(/^-?\d+$/)) {
-      setError("Telegram chat ID must be numeric");
+      toast.error("Telegram chat ID must be numeric");
       return false;
     }
 
     // At least one notification channel required
     if (!discordWebhook && !telegramToken) {
-      setError("At least one notification channel (Discord or Telegram) is required");
+      toast.error(
+        "At least one notification channel (Discord or Telegram) is required"
+      );
       return false;
     }
 
@@ -78,8 +89,6 @@ export default function SetupPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError("");
-    setSuccess(false);
 
     if (!validateForm()) {
       return;
@@ -109,12 +118,12 @@ export default function SetupPage() {
         throw new Error(data.message || "Failed to save preferences");
       }
 
-      setSuccess(true);
+      toast.success("Preferences saved successfully! Redirecting...");
       setTimeout(() => {
         router.push("/dashboard");
-      }, 2000);
+      }, 1500);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "An error occurred");
+      toast.error(err instanceof Error ? err.message : "An error occurred");
     } finally {
       setIsLoading(false);
     }
@@ -125,9 +134,12 @@ export default function SetupPage() {
       <div className="max-w-2xl mx-auto">
         <div className="bg-white/10 backdrop-blur-lg rounded-lg p-8 shadow-xl">
           <div className="mb-8">
-            <h1 className="text-3xl font-bold text-white mb-2">Setup Your Notifications</h1>
+            <h1 className="text-3xl font-bold text-white mb-2">
+              Setup Your Notifications
+            </h1>
             <p className="text-white/80">
-              Configure your GitHub access and notification preferences to get started
+              Configure your GitHub access and notification preferences to get
+              started
             </p>
           </div>
 
@@ -135,7 +147,10 @@ export default function SetupPage() {
             {/* GitHub PAT Section */}
             <div className="space-y-4 pb-6 border-b border-white/20">
               <div>
-                <Label htmlFor="githubPat" className="text-white text-base font-semibold">
+                <Label
+                  htmlFor="githubPat"
+                  className="text-white text-base font-semibold"
+                >
                   GitHub Personal Access Token *
                 </Label>
                 <p className="text-white/60 text-sm mt-1 mb-3">
@@ -148,7 +163,9 @@ export default function SetupPage() {
                   >
                     Generate a token
                   </a>{" "}
-                  with <code className="bg-white/20 px-1 rounded">read:user</code> scope.
+                  with{" "}
+                  <code className="bg-white/20 px-1 rounded">read:user</code>{" "}
+                  scope.
                 </p>
                 <Input
                   id="githubPat"
@@ -165,7 +182,10 @@ export default function SetupPage() {
             {/* Discord Section */}
             <div className="space-y-4 pb-6 border-b border-white/20">
               <div>
-                <Label htmlFor="discordWebhook" className="text-white text-base font-semibold">
+                <Label
+                  htmlFor="discordWebhook"
+                  className="text-white text-base font-semibold"
+                >
                   Discord Webhook URL (Optional)
                 </Label>
                 <p className="text-white/60 text-sm mt-1 mb-3">
@@ -193,7 +213,10 @@ export default function SetupPage() {
             {/* Telegram Section */}
             <div className="space-y-4">
               <div>
-                <Label htmlFor="telegramToken" className="text-white text-base font-semibold">
+                <Label
+                  htmlFor="telegramToken"
+                  className="text-white text-base font-semibold"
+                >
                   Telegram Bot Token (Optional)
                 </Label>
                 <p className="text-white/60 text-sm mt-1 mb-3">
@@ -218,7 +241,10 @@ export default function SetupPage() {
               </div>
 
               <div>
-                <Label htmlFor="telegramChatId" className="text-white text-base font-semibold">
+                <Label
+                  htmlFor="telegramChatId"
+                  className="text-white text-base font-semibold"
+                >
                   Telegram Chat ID (Optional)
                 </Label>
                 <p className="text-white/60 text-sm mt-1 mb-3">
@@ -243,22 +269,6 @@ export default function SetupPage() {
                 />
               </div>
             </div>
-
-            {/* Error Message */}
-            {error && (
-              <div className="bg-red-500/20 border border-red-500/50 rounded-lg p-4">
-                <p className="text-red-200 text-sm">{error}</p>
-              </div>
-            )}
-
-            {/* Success Message */}
-            {success && (
-              <div className="bg-green-500/20 border border-green-500/50 rounded-lg p-4">
-                <p className="text-green-200 text-sm">
-                  Preferences saved successfully! Redirecting to dashboard...
-                </p>
-              </div>
-            )}
 
             {/* Submit Button */}
             <Button
