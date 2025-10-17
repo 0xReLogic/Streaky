@@ -10,16 +10,33 @@ Never lose your GitHub streak again! Get instant notifications when your contrib
 
 GitHub streaks represent consistency in your coding habits. Don't let a busy day break your streak - Streaky keeps you on track with timely reminders.
 
+### Your Data is Safe
+
+We understand you're trusting us with sensitive credentials (GitHub PAT, Discord webhooks, Telegram tokens). Here's how we protect them:
+
+- **AES-256-GCM Encryption** - All tokens encrypted in database with industry-standard encryption
+- **Separate Key Storage** - Encryption keys stored separately from database in Cloudflare secrets
+- **Even if database leaks** - Your tokens remain useless encrypted blobs without the encryption key
+- **Zero knowledge architecture** - We can't access your tokens even if we wanted to
+- **Automatic key rotation** - Regular security updates and key rotation support
+- **No third-party access** - Your data never leaves Cloudflare and Vercel infrastructure
+
+**Bottom line:** Your GitHub PAT, Discord webhooks, and Telegram tokens are encrypted and secure. A database breach would only expose encrypted gibberish, not your actual credentials.
+
 ---
 
 ## Web App (Recommended)
 
-**Coming Soon!** The easiest way to keep your streak alive:
+**Live at [streakyy.vercel.app](https://streakyy.vercel.app)**
+
+The easiest way to keep your streak alive:
 
 - **Zero setup required** - Sign in with GitHub and start monitoring
 - **Always running** - Cloud-based daily checks at 8 PM UTC
 - **Multi-platform notifications** - Discord and Telegram support
-- **Beautiful interface** - Modern design with smooth animations
+- **Beautiful interface** - Modern design with 3D animations
+- **Enterprise-grade security** - JWT authentication, AES-256 encryption, secure key storage
+- **Your data stays encrypted** - Database leaks expose only useless encrypted data
 
 ---
 
@@ -56,12 +73,37 @@ We welcome contributions! Check out our [Contributing Guide](./CONTRIBUTING.md) 
 ```
 streaky/
 ├── cli/              # Python CLI tool
-├── web/              # Web application (coming soon)
-│   ├── frontend/     # Next.js
-│   ├── backend/      # Cloudflare Workers
-│   └── database/     # D1 SQLite schemas
-└── docs/             # Documentation
+├── web/              # Full-stack web application (Production)
+│   ├── frontend/     # Next.js 15 + shadcn/ui + Spline
+│   └── backend/      # Cloudflare Workers + D1 Database
+└── SECURITY.md       # Security documentation and roadmap
 ```
+
+---
+
+## Tech Stack
+
+**Frontend:**
+- Next.js 15 (React 19, App Router)
+- TypeScript
+- Tailwind CSS
+- shadcn/ui components
+- Spline 3D animations
+- NextAuth.js (OAuth)
+
+**Backend:**
+- Cloudflare Workers (Hono framework)
+- Cloudflare D1 (SQLite)
+- Analytics Engine (SQL-queryable metrics)
+- TypeScript
+
+**Security:**
+- JWT authentication with signature verification
+- AES-256-GCM encryption for all sensitive credentials
+- Separate encryption key storage in Cloudflare secrets
+- CORS strict allowlist
+- Rate limiting (60 requests per minute)
+- Security headers (HSTS, CSP, X-Frame-Options)
 
 ---
 
@@ -82,5 +124,5 @@ This project is licensed under the MIT License. See the [LICENSE](LICENSE) file 
 ---
 
 <p align="center">
-  Made with love by the GitHub Streak Alert contributors
+  Made with love by the Streaky contributors
 </p>
