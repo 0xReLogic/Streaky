@@ -1,0 +1,298 @@
+"use client";
+
+import { useState } from "react";
+import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+
+export default function SetupPage() {
+  const { data: session, status } = useSession();
+  const router = useRouter();
+
+  const [githubPat, setGithubPat] = useState("");
+  const [discordWebhook, setDiscordWebhook] = useState("");
+  const [telegramToken, setTelegramToken] = useState("");
+  const [telegramChatId, setTelegramChatId] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState(false);
+
+  // Redirect if not authenticated
+  if (status === "loading") {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#054980] via-[#043a66] to-[#032a4d]">
+        <div className="text-white">Loading...</div>
+      </div>
+    );
+  }
+
+  if (status === "unauthenticated") {
+    router.push("/auth/signin");
+    return null;
+  }
+
+  const validateForm = () => {
+    // GitHub PAT validation (required)
+    if (!githubPat || githubPat.trim().length === 0) {
+      setError("GitHub Personal Access Token is required");
+      return false;
+    }
+
+    if (!githubPat.startsWith("ghp_") && !githubPat.startsWith("github_pat_")) {
+      setError("Invalid GitHub PAT format. Must start with 'ghp_' or 'github_pat_'");
+      return false;
+    }
+
+    // Discord webhook validation (optional)
+    if (discordWebhook && !discordWebhook.match(/^https:\/\/discord\.com\/api\/webhooks\/\d+\/.+$/)) {
+      setError("Invalid Discord webhook URL format");
+      return false;
+    }
+
+    // Telegram validation (both or neither)
+    if ((telegramToken && !telegramChatId) || (!telegramToken && telegramChatId)) {
+      setError("Both Telegram bot token and chat ID are required if using Telegram");
+      return false;
+    }
+
+    if (telegramToken && !telegramToken.match(/^\d+:[A-Za-z0-9_-]+$/)) {
+      setError("Invalid Telegram bot token format");
+      return false;
+    }
+
+    if (telegramChatId && !telegramChatId.match(/^-?\d+$/)) {
+      setError("Telegram chat ID must be numeric");
+      return false;
+    }
+
+    // At least one notification channel required
+    if (!discordWebhook && !telegramToken) {
+      setError("At least one notification channel (Discord or Telegram) is required");
+      return false;
+    }
+
+    return true;
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+    setSuccess(false);
+
+    if (!validateForm()) {
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8787";
+      const response = await fetch(`${apiUrl}/api/user/preferences`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          githubPat,
+          discordWebhook: discordWebhook || undefined,
+          telegramToken: telegramToken || undefined,
+          telegramChatId: telegramChatId || undefined,
+          githubUsername: session?.user?.username,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || "Failed to save preferences");
+      }
+
+      setSuccess(true);
+      setTimeout(() => {
+        router.push("/dashboard");
+      }, 2000);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "An error occurred");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <main className="min-h-screen bg-gradient-to-br from-[#054980] via-[#043a66] to-[#032a4d] py-12 px-4">
+      <div className="max-w-2xl mx-auto">
+        <div className="bg-white/10 backdrop-blur-lg rounded-lg p-8 shadow-xl">
+          <div className="mb-8">
+            <h1 className="text-3xl font-bold text-white mb-2">Setup Your Notifications</h1>
+            <p className="text-white/80">
+              Configure your GitHub access and notification preferences to get started
+            </p>
+          </div>
+
+          <form onSubmit={handleSubmit} className="space-y-6">
+            {/* GitHub PAT Section */}
+            <div className="space-y-4 pb-6 border-b border-white/20">
+              <div>
+                <Label htmlFor="githubPat" className="text-white text-base font-semibold">
+                  GitHub Personal Access Token *
+                </Label>
+                <p className="text-white/60 text-sm mt-1 mb-3">
+                  Required to check your contribution streak.{" "}
+                  <a
+                    href="https://github.com/settings/personal-access-tokens/new"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-white underline hover:text-white/80"
+                  >
+                    Generate a token
+                  </a>{" "}
+                  with <code className="bg-white/20 px-1 rounded">read:user</code> scope.
+                </p>
+                <Input
+                  id="githubPat"
+                  type="password"
+                  value={githubPat}
+                  onChange={(e) => setGithubPat(e.target.value)}
+                  placeholder="ghp_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+                  className="bg-white/10 border-white/30 text-white placeholder:text-white/40"
+                  required
+                />
+              </div>
+            </div>
+
+            {/* Discord Section */}
+            <div className="space-y-4 pb-6 border-b border-white/20">
+              <div>
+                <Label htmlFor="discordWebhook" className="text-white text-base font-semibold">
+                  Discord Webhook URL (Optional)
+                </Label>
+                <p className="text-white/60 text-sm mt-1 mb-3">
+                  Get notifications in your Discord server.{" "}
+                  <a
+                    href="https://support.discord.com/hc/en-us/articles/228383668-Intro-to-Webhooks"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-white underline hover:text-white/80"
+                  >
+                    Learn how to create a webhook
+                  </a>
+                </p>
+                <Input
+                  id="discordWebhook"
+                  type="url"
+                  value={discordWebhook}
+                  onChange={(e) => setDiscordWebhook(e.target.value)}
+                  placeholder="https://discord.com/api/webhooks/..."
+                  className="bg-white/10 border-white/30 text-white placeholder:text-white/40"
+                />
+              </div>
+            </div>
+
+            {/* Telegram Section */}
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="telegramToken" className="text-white text-base font-semibold">
+                  Telegram Bot Token (Optional)
+                </Label>
+                <p className="text-white/60 text-sm mt-1 mb-3">
+                  Get notifications via Telegram.{" "}
+                  <a
+                    href="https://core.telegram.org/bots#6-botfather"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-white underline hover:text-white/80"
+                  >
+                    Create a bot with BotFather
+                  </a>
+                </p>
+                <Input
+                  id="telegramToken"
+                  type="password"
+                  value={telegramToken}
+                  onChange={(e) => setTelegramToken(e.target.value)}
+                  placeholder="123456789:ABCdefGHIjklMNOpqrsTUVwxyz"
+                  className="bg-white/10 border-white/30 text-white placeholder:text-white/40"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="telegramChatId" className="text-white text-base font-semibold">
+                  Telegram Chat ID (Optional)
+                </Label>
+                <p className="text-white/60 text-sm mt-1 mb-3">
+                  Your Telegram chat ID. Send /start to your bot, then use{" "}
+                  <a
+                    href="https://api.telegram.org/bot<YOUR_BOT_TOKEN>/getUpdates"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-white underline hover:text-white/80"
+                  >
+                    getUpdates
+                  </a>{" "}
+                  to find it.
+                </p>
+                <Input
+                  id="telegramChatId"
+                  type="text"
+                  value={telegramChatId}
+                  onChange={(e) => setTelegramChatId(e.target.value)}
+                  placeholder="123456789"
+                  className="bg-white/10 border-white/30 text-white placeholder:text-white/40"
+                />
+              </div>
+            </div>
+
+            {/* Error Message */}
+            {error && (
+              <div className="bg-red-500/20 border border-red-500/50 rounded-lg p-4">
+                <p className="text-red-200 text-sm">{error}</p>
+              </div>
+            )}
+
+            {/* Success Message */}
+            {success && (
+              <div className="bg-green-500/20 border border-green-500/50 rounded-lg p-4">
+                <p className="text-green-200 text-sm">
+                  Preferences saved successfully! Redirecting to dashboard...
+                </p>
+              </div>
+            )}
+
+            {/* Submit Button */}
+            <Button
+              type="submit"
+              disabled={isLoading}
+              className="w-full h-12 text-lg bg-white text-[#054980] hover:bg-white/90 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isLoading ? (
+                <span className="flex items-center gap-2">
+                  <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                      fill="none"
+                    />
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    />
+                  </svg>
+                  Saving...
+                </span>
+              ) : (
+                "Save Preferences"
+              )}
+            </Button>
+          </form>
+        </div>
+      </div>
+    </main>
+  );
+}

@@ -17,10 +17,14 @@ const user = new Hono<{ Bindings: Env }>();
 user.post('/preferences', async (c) => {
   try {
     const body = await c.req.json();
-    const { userId, githubPat, discordWebhook, telegramToken, telegramChatId } = body;
+    const { userId, githubUsername, githubPat, discordWebhook, telegramToken, telegramChatId } = body;
 
-    if (!userId) {
-      return c.json({ error: 'User ID is required' }, 400);
+    if (!githubUsername) {
+      return c.json({ error: 'GitHub username is required' }, 400);
+    }
+
+    if (!githubPat) {
+      return c.json({ error: 'GitHub Personal Access Token is required' }, 400);
     }
 
     // Validate GitHub PAT format
@@ -50,22 +54,44 @@ user.post('/preferences', async (c) => {
     const encryptedTelegramToken = telegramToken ? await encryptionService.encrypt(telegramToken) : null;
     const encryptedTelegramChatId = telegramChatId ? await encryptionService.encrypt(telegramChatId) : null;
 
-    // Update user preferences in database
-    await c.env.DB.prepare(`
-      UPDATE users 
-      SET github_pat = ?,
-          discord_webhook = ?, 
-          telegram_token = ?, 
-          telegram_chat_id = ?,
-          updated_at = datetime('now')
-      WHERE id = ?
-    `).bind(
-      encryptedGithubPat,
-      encryptedDiscord,
-      encryptedTelegramToken,
-      encryptedTelegramChatId,
-      userId
-    ).run();
+    // Check if user exists
+    const existingUser = await c.env.DB.prepare(`
+      SELECT id FROM users WHERE github_username = ?
+    `).bind(githubUsername).first();
+
+    if (existingUser) {
+      // Update existing user
+      await c.env.DB.prepare(`
+        UPDATE users 
+        SET github_pat = ?,
+            discord_webhook = ?, 
+            telegram_token = ?, 
+            telegram_chat_id = ?,
+            updated_at = datetime('now')
+        WHERE github_username = ?
+      `).bind(
+        encryptedGithubPat,
+        encryptedDiscord,
+        encryptedTelegramToken,
+        encryptedTelegramChatId,
+        githubUsername
+      ).run();
+    } else {
+      // Create new user
+      const newUserId = userId || crypto.randomUUID();
+      await c.env.DB.prepare(`
+        INSERT INTO users (id, github_username, github_id, github_pat, discord_webhook, telegram_token, telegram_chat_id, is_active)
+        VALUES (?, ?, ?, ?, ?, ?, ?, 1)
+      `).bind(
+        newUserId,
+        githubUsername,
+        githubUsername, // Use username as github_id for now
+        encryptedGithubPat,
+        encryptedDiscord,
+        encryptedTelegramToken,
+        encryptedTelegramChatId
+      ).run();
+    }
 
     return c.json({ 
       success: true, 
