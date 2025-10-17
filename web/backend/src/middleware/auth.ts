@@ -49,7 +49,7 @@ async function verifyJWT(token: string, secret: string): Promise<JWTPayload> {
 	}
 
 	// Decode payload
-	const payloadJson = atob(payloadB64.replace(/-/g, '+').replace(/_/g, '/'));
+	const payloadJson = atob(payloadB64.replaceAll('-', '+').replaceAll('_', '/'));
 	const payload: JWTPayload = JSON.parse(payloadJson);
 
 	// Check expiration
@@ -64,11 +64,11 @@ async function verifyJWT(token: string, secret: string): Promise<JWTPayload> {
  * Decode base64url string to Uint8Array
  */
 function base64UrlDecode(str: string): Uint8Array {
-	const base64 = str.replace(/-/g, '+').replace(/_/g, '/');
+	const base64 = str.replaceAll('-', '+').replaceAll('_', '/');
 	const binary = atob(base64);
 	const bytes = new Uint8Array(binary.length);
 	for (let i = 0; i < binary.length; i++) {
-		bytes[i] = binary.charCodeAt(i);
+		bytes[i] = binary.codePointAt(i) || 0;
 	}
 	return bytes;
 }

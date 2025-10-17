@@ -265,7 +265,7 @@ export default function DashboardPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                {data.notifications.length === 0 ? (
+                {!data.notifications || data.notifications.length === 0 ? (
                   <div className="text-center py-12">
                     <svg
                       className="w-16 h-16 mx-auto mb-4 text-white/40"
@@ -293,13 +293,13 @@ export default function DashboardPage() {
                     <Table>
                       <TableHeader>
                         <TableRow className="border-white/20 hover:bg-white/5">
-                          <TableHead className="text-white/80">
+                          <TableHead scope="col" className="text-white/80">
                             Date & Time
                           </TableHead>
-                          <TableHead className="text-white/80">
+                          <TableHead scope="col" className="text-white/80">
                             Channel
                           </TableHead>
-                          <TableHead className="text-white/80">
+                          <TableHead scope="col" className="text-white/80">
                             Status
                           </TableHead>
                         </TableRow>
