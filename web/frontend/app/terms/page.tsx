@@ -28,7 +28,7 @@ export default function TermsOfService() {
               1. Acceptance of Terms
             </h2>
             <p>
-              By accessing and using Streaky ("the Service"), you agree to be
+              By accessing and using Streaky (&quot;the Service&quot;), you agree to be
               bound by these Terms of Service. If you do not agree to these
               terms, please do not use the Service.
             </p>
@@ -116,7 +116,7 @@ export default function TermsOfService() {
               5. Limitation of Liability
             </h2>
             <p className="mb-4">
-              THE SERVICE IS PROVIDED "AS IS" WITHOUT WARRANTY OF ANY KIND.
+              THE SERVICE IS PROVIDED &quot;AS IS&quot; WITHOUT WARRANTY OF ANY KIND.
             </p>
             <p className="mb-4">
               We are NOT liable for:

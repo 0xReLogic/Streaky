@@ -28,7 +28,7 @@ export default function PrivacyPolicy() {
               1. Introduction
             </h2>
             <p>
-              Streaky ("we", "our", or "us") is committed to protecting your
+              Streaky (&quot;we&quot;, &quot;our&quot;, or &quot;us&quot;) is committed to protecting your
               privacy. This Privacy Policy explains how we collect, use, store,
               and protect your personal information when you use our service.
             </p>
@@ -332,7 +332,7 @@ export default function PrivacyPolicy() {
           {/* Section 9 */}
           <section>
             <h2 className="text-2xl font-semibold mb-4 text-black">
-              9. Children's Privacy
+              9. Children&apos;s Privacy
             </h2>
             <p>
               Streaky is not intended for users under 13 years old. We do not
@@ -348,7 +348,7 @@ export default function PrivacyPolicy() {
               10. International Data Transfers
             </h2>
             <p>
-              Your data is stored in Cloudflare's global network and may be
+              Your data is stored in Cloudflare&apos;s global network and may be
               transferred to countries outside your residence. Cloudflare
               complies with GDPR and other international privacy regulations.
             </p>
@@ -432,7 +432,7 @@ export default function PrivacyPolicy() {
             <ul className="list-disc pl-6 space-y-2">
               <li>Right to access your personal data</li>
               <li>Right to rectification (correct inaccurate data)</li>
-              <li>Right to erasure ("right to be forgotten")</li>
+              <li>Right to erasure (&quot;right to be forgotten&quot;)</li>
               <li>Right to restrict processing</li>
               <li>Right to data portability</li>
               <li>Right to object to processing</li>
