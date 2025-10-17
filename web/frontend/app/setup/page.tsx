@@ -17,9 +17,29 @@ export default function SetupPage() {
   const [telegramToken, setTelegramToken] = useState("");
   const [telegramChatId, setTelegramChatId] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [hasExistingPat, setHasExistingPat] = useState(false);
+  const [isCheckingStatus, setIsCheckingStatus] = useState(true);
+
+  // Check if user already has PAT configured
+  React.useEffect(() => {
+    async function checkUserStatus() {
+      if (status === "authenticated") {
+        try {
+          const response = await fetch("/api/user/status");
+          const data = await response.json();
+          setHasExistingPat(data.hasSetup);
+        } catch (error) {
+          console.error("Error checking user status:", error);
+        } finally {
+          setIsCheckingStatus(false);
+        }
+      }
+    }
+    checkUserStatus();
+  }, [status]);
 
   // Redirect if not authenticated
-  if (status === "loading") {
+  if (status === "loading" || isCheckingStatus) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#054980] via-[#043a66] to-[#032a4d]">
         <div className="text-white">Loading...</div>
@@ -70,6 +90,12 @@ export default function SetupPage() {
 
     if (telegramChatId && !telegramChatId.match(/^-?\d+$/)) {
       toast.error("Telegram chat ID must be numeric");
+      return false;
+    }
+
+    // For new users, GitHub PAT is required
+    if (!hasExistingPat && !githubPat) {
+      toast.error("GitHub Personal Access Token is required for new users");
       return false;
     }
 
@@ -161,7 +187,7 @@ export default function SetupPage() {
                   htmlFor="githubPat"
                   className="text-white text-base font-semibold"
                 >
-                  GitHub Personal Access Token (Optional if updating)
+                  GitHub Personal Access Token {hasExistingPat ? "(Optional - already configured)" : "(Required)"}
                 </Label>
                 <p className="text-white/60 text-sm mt-1 mb-3">
                   Required to check your contribution streak.{" "}

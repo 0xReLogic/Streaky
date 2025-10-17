@@ -29,11 +29,20 @@ user.post('/preferences', authMiddleware, async (c) => {
 		// Use authenticated user's GitHub username
 		const githubUsername = authUser.githubUsername;
 
-		if (!githubPat) {
-			return c.json({ error: 'GitHub Personal Access Token is required' }, 400);
+		// Check if user exists first
+		const existingUser = await c.env.DB.prepare(
+			`SELECT id, github_pat FROM users WHERE github_username = ?`
+		)
+			.bind(githubUsername)
+			.first();
+
+		// If user doesn't exist, PAT is required
+		if (!existingUser && !githubPat) {
+			return c.json({ error: 'GitHub Personal Access Token is required for new users' }, 400);
 		}
 
-		// Validate GitHub PAT format
+		// If updating existing user without PAT, that's okay (keep existing PAT)
+		// If PAT is provided, validate format
 		if (githubPat && !/^(ghp|github_pat)_\w+$/.test(githubPat)) {
 			return c.json({ error: 'Invalid GitHub Personal Access Token format' }, 400);
 		}
@@ -60,30 +69,38 @@ user.post('/preferences', authMiddleware, async (c) => {
 		const encryptedTelegramToken = telegramToken ? await encryptionService.encrypt(telegramToken) : null;
 		const encryptedTelegramChatId = telegramChatId ? await encryptionService.encrypt(telegramChatId) : null;
 
-		// Check if user exists
-		const existingUser = await c.env.DB.prepare(
-			`
-      SELECT id FROM users WHERE github_username = ?
-    `
-		)
-			.bind(githubUsername)
-			.first();
-
 		if (existingUser) {
-			// Update existing user
-			await c.env.DB.prepare(
-				`
-        UPDATE users 
-        SET github_pat = ?,
-            discord_webhook = ?, 
-            telegram_token = ?, 
-            telegram_chat_id = ?,
-            updated_at = datetime('now')
-        WHERE github_username = ?
-      `
-			)
-				.bind(encryptedGithubPat, encryptedDiscord, encryptedTelegramToken, encryptedTelegramChatId, githubUsername)
-				.run();
+			// Update existing user - only update fields that are provided
+			const updates: string[] = [];
+			const values: any[] = [];
+
+			if (encryptedGithubPat) {
+				updates.push('github_pat = ?');
+				values.push(encryptedGithubPat);
+			}
+			if (discordWebhook !== undefined) {
+				updates.push('discord_webhook = ?');
+				values.push(encryptedDiscord);
+			}
+			if (telegramToken !== undefined) {
+				updates.push('telegram_token = ?');
+				values.push(encryptedTelegramToken);
+			}
+			if (telegramChatId !== undefined) {
+				updates.push('telegram_chat_id = ?');
+				values.push(encryptedTelegramChatId);
+			}
+
+			if (updates.length > 0) {
+				updates.push('updated_at = datetime(\'now\')');
+				values.push(githubUsername);
+
+				await c.env.DB.prepare(
+					`UPDATE users SET ${updates.join(', ')} WHERE github_username = ?`
+				)
+					.bind(...values)
+					.run();
+			}
 		} else {
 			// Create new user with authenticated user ID
 			await c.env.DB.prepare(
