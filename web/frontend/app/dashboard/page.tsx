@@ -55,8 +55,8 @@ export default function DashboardPage() {
       : null,
     fetcher,
     {
-      refreshInterval: 60000, // Refresh every minute
-      revalidateOnFocus: true,
+      revalidateOnFocus: false, // Don't refetch on window focus
+      revalidateOnReconnect: false, // Don't refetch on reconnect
     }
   );
 
