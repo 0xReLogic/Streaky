@@ -67,23 +67,30 @@ export async function checkAllUsersStreaks(env: Env): Promise<void> {
 
         // Check if user has contributed today
         const contributionsToday = await githubService.getContributionsToday(user.github_username);
-
-        // If user has contributed, skip notification
-        if (contributionsToday > 0) {
-          console.log(`[Cron] User ${user.github_username} has ${contributionsToday} contributions today - skipping`);
-          continue;
-        }
-
-        console.log(`[Cron] User ${user.github_username} has 0 contributions today - sending notifications`);
-
-        // Get current streak for notification message
         const currentStreak = await githubService.getCurrentStreak(user.github_username);
 
-        const notificationMessage = {
-          username: user.github_username,
-          currentStreak,
-          message: `You have not made any contributions today! Your ${currentStreak}-day streak is at risk. Make a commit to keep it alive!`,
-        };
+        // Prepare notification message based on contribution status
+        let notificationMessage;
+        
+        if (contributionsToday > 0) {
+          // User has contributed - send encouragement
+          console.log(`[Cron] User ${user.github_username} has ${contributionsToday} contributions today - sending encouragement`);
+          notificationMessage = {
+            username: user.github_username,
+            currentStreak,
+            contributionsToday,
+            message: `🎉 Great job! You made ${contributionsToday} contribution${contributionsToday > 1 ? 's' : ''} today! Your ${currentStreak}-day streak is safe. Keep it up!`,
+          };
+        } else {
+          // User has NOT contributed - send warning
+          console.log(`[Cron] User ${user.github_username} has 0 contributions today - sending warning`);
+          notificationMessage = {
+            username: user.github_username,
+            currentStreak,
+            contributionsToday: 0,
+            message: `⚠️ You have not made any contributions today! Your ${currentStreak}-day streak is at risk. Make a commit to keep it alive!`,
+          };
+        }
 
         // Send Discord notification if configured
         if (user.discord_webhook) {
