@@ -179,7 +179,7 @@ user.get('/dashboard', authMiddleware, async (c) => {
 			githubService.getCurrentStreak(user.github_username),
 		]);
 
-		// Fetch recent notifications using authenticated user's ID
+		// Fetch recent notifications using database user's ID (not OAuth ID)
 		const notificationsResult = await c.env.DB.prepare(
 			`
       SELECT id, channel, status, error_message, sent_at
@@ -189,7 +189,7 @@ user.get('/dashboard', authMiddleware, async (c) => {
       LIMIT 10
     `
 		)
-			.bind(authUser.id)
+			.bind(user.id)
 			.all();
 
 		const notifications = notificationsResult.results || [];
