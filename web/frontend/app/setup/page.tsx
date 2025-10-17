@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useSession } from "next-auth/react";
+import { useSession, signOut } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -129,18 +129,34 @@ export default function SetupPage() {
     }
   };
 
+  const handleLogout = async () => {
+    await signOut({ callbackUrl: "/" });
+  };
+
   return (
     <main className="min-h-screen bg-gradient-to-br from-[#054980] via-[#043a66] to-[#032a4d] py-12 px-4">
       <div className="max-w-2xl mx-auto">
         <div className="bg-white/10 backdrop-blur-lg rounded-lg p-8 shadow-xl">
           <div className="mb-8">
-            <h1 className="text-3xl font-bold text-white mb-2">
-              Setup Your Notifications
-            </h1>
-            <p className="text-white/80">
-              Configure your GitHub access and notification preferences to get
-              started
-            </p>
+            <div className="flex justify-between items-start mb-4">
+              <div>
+                <h1 className="text-3xl font-bold text-white mb-2">
+                  Setup Your Notifications
+                </h1>
+                <p className="text-white/80">
+                  Configure your GitHub access and notification preferences to get
+                  started
+                </p>
+              </div>
+              <Button
+                onClick={handleLogout}
+                variant="outline"
+                size="sm"
+                className="bg-red-500/20 text-white hover:bg-red-500/30 border border-red-500/30"
+              >
+                Logout
+              </Button>
+            </div>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">

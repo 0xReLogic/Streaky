@@ -1,6 +1,6 @@
 "use client";
 
-import { useSession } from "next-auth/react";
+import { useSession, signOut } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import useSWR from "swr";
 import { Button } from "@/components/ui/button";
@@ -78,6 +78,10 @@ export default function DashboardPage() {
     router.push("/setup");
   };
 
+  const handleLogout = async () => {
+    await signOut({ callbackUrl: "/" });
+  };
+
   return (
     <main className="min-h-screen bg-gradient-to-br from-[#054980] via-[#043a66] to-[#032a4d] py-12 px-4">
       <div className="max-w-6xl mx-auto">
@@ -89,12 +93,22 @@ export default function DashboardPage() {
               Welcome back, {session?.user?.name || session?.user?.username}!
             </p>
           </div>
-          <Button
-            onClick={handleGoToSettings}
-            className="bg-white/20 text-white hover:bg-white/30 border border-white/30"
-          >
-            Settings
-          </Button>
+          <div className="flex gap-3">
+            <Button
+              onClick={handleGoToSettings}
+              variant="outline"
+              className="bg-white/20 text-white hover:bg-white/30 border border-white/30"
+            >
+              Settings
+            </Button>
+            <Button
+              onClick={handleLogout}
+              variant="outline"
+              className="bg-red-500/20 text-white hover:bg-red-500/30 border border-red-500/30"
+            >
+              Logout
+            </Button>
+          </div>
         </div>
 
         {/* Loading State */}
