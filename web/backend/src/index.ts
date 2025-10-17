@@ -7,10 +7,14 @@ import { Hono } from 'hono';
 import { Env } from './types/env';
 import { corsMiddleware } from './middleware/cors';
 import { RateLimiters } from './middleware/rate-limit';
+import { performanceMiddleware } from './lib/monitoring';
 import userRoutes from './routes/user';
 import { checkAllUsersStreaks } from './cron/streak-checker';
 
 const app = new Hono<{ Bindings: Env }>();
+
+// Performance monitoring middleware (first to track all requests)
+app.use('*', performanceMiddleware);
 
 // Security headers middleware
 app.use('*', async (c, next) => {
