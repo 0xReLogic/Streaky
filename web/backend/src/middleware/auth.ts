@@ -78,10 +78,32 @@ function base64UrlDecode(str: string): Uint8Array {
  * Validates JWT tokens from NextAuth.js and attaches user info to context
  */
 export async function authMiddleware(c: Context<{ Bindings: Env; Variables: { user: AuthUser } }>, next: Next) {
+	// Check for server-to-server authentication (from Next.js proxy)
+	const serverSecret = c.req.header('X-Server-Secret');
+	const userId = c.req.header('X-User-ID');
+	const username = c.req.header('X-User-Username');
+
+	if (serverSecret && userId && username) {
+		// Verify server secret to prevent spoofing
+		if (c.env.SERVER_SECRET && serverSecret === c.env.SERVER_SECRET) {
+			const user: AuthUser = {
+				id: userId,
+				githubUsername: username,
+				email: c.req.header('X-User-Email'),
+			};
+			c.set('user', user);
+			await next();
+			return;
+		} else {
+			return c.json({ error: 'Invalid server secret' }, 401);
+		}
+	}
+
+	// Fallback: JWT token authentication (for direct API calls)
 	const authHeader = c.req.header('Authorization');
 
 	if (!authHeader?.startsWith('Bearer ')) {
-		return c.json({ error: 'Unauthorized - Missing or invalid Authorization header' }, 401);
+		return c.json({ error: 'Unauthorized - Missing authentication' }, 401);
 	}
 
 	const token = authHeader.substring(7);

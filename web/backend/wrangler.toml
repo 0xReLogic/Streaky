@@ -24,7 +24,8 @@ crons = ["0 20 * * *"]
 # ENVIRONMENT = "production"
 
 # Secrets (use: wrangler secret put <KEY>)
-# - ENCRYPTION_KEY
-# - NEXTAUTH_SECRET
+# - ENCRYPTION_KEY (for encrypting Discord/Telegram credentials)
+# - NEXTAUTH_SECRET (must match Vercel - for JWT verification fallback)
+# - SERVER_SECRET (shared secret for server-to-server auth - must match Vercel)
 # - GITHUB_CLIENT_ID (optional, for future use)
 # - GITHUB_CLIENT_SECRET (optional, for future use)

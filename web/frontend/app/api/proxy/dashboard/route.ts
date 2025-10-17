@@ -4,28 +4,25 @@ import { NextResponse } from 'next/server';
 export async function GET(request: Request) {
   const session = await auth();
   
-  if (!session?.user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  if (!session?.user?.username) {
+    return NextResponse.json({ error: 'Unauthorized - No session or username' }, { status: 401 });
   }
 
   try {
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8787';
     
-    // Get session token from cookies (server-side)
-    const cookies = request.headers.get('cookie') || '';
-    const sessionToken = cookies
-      .split(';')
-      .find(c => c.trim().startsWith('next-auth.session-token=') || c.trim().startsWith('__Secure-next-auth.session-token='))
-      ?.split('=')[1];
-
-    if (!sessionToken) {
-      return NextResponse.json({ error: 'Session token not found' }, { status: 401 });
+    // Send user info with server secret for authentication
+    const serverSecret = process.env.SERVER_SECRET;
+    if (!serverSecret) {
+      return NextResponse.json({ error: 'Server configuration error' }, { status: 500 });
     }
 
     const response = await fetch(`${apiUrl}/api/user/dashboard`, {
       method: 'GET',
       headers: {
-        'Authorization': `Bearer ${sessionToken}`,
+        'X-Server-Secret': serverSecret,
+        'X-User-ID': session.user.id,
+        'X-User-Username': session.user.username,
       },
     });
 
