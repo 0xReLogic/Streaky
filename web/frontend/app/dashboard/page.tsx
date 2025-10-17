@@ -36,7 +36,22 @@ interface DashboardData {
 }
 
 const fetcher = async (url: string) => {
-  const res = await fetch(url);
+  // Get session token for authentication
+  const sessionToken = document.cookie
+    .split(';')
+    .find(c => c.trim().startsWith('next-auth.session-token=') || c.trim().startsWith('__Secure-next-auth.session-token='))
+    ?.split('=')[1];
+
+  if (!sessionToken) {
+    throw new Error('Session token not found. Please sign in again.');
+  }
+
+  const res = await fetch(url, {
+    headers: {
+      'Authorization': `Bearer ${sessionToken}`,
+    },
+  });
+  
   if (!res.ok) {
     const error = await res.json();
     throw new Error(error.error || "Failed to fetch data");
@@ -50,8 +65,8 @@ export default function DashboardPage() {
 
   const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8787";
   const { data, error, isLoading } = useSWR<DashboardData>(
-    status === "authenticated" && session?.user?.username
-      ? `${apiUrl}/api/user/dashboard?userId=${session.user.username}`
+    status === "authenticated"
+      ? `${apiUrl}/api/user/dashboard`
       : null,
     fetcher,
     {

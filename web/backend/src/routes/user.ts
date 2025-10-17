@@ -7,21 +7,27 @@ import { Hono } from 'hono';
 import { Env } from '../types/env';
 import { createEncryptionService } from '../services/encryption';
 import { createCachedGitHubService } from '../services/github-cached';
+import { authMiddleware, getAuthUser, AuthUser } from '../middleware/auth';
 
-const user = new Hono<{ Bindings: Env }>();
+const user = new Hono<{ Bindings: Env; Variables: { user: AuthUser } }>();
 
 /**
  * POST /api/user/preferences
  * Update user notification preferences
  */
-user.post('/preferences', async (c) => {
+user.post('/preferences', authMiddleware, async (c) => {
 	try {
-		const body = await c.req.json();
-		const { userId, githubUsername, githubPat, discordWebhook, telegramToken, telegramChatId } = body;
-
-		if (!githubUsername) {
-			return c.json({ error: 'GitHub username is required' }, 400);
+		// Get authenticated user from context
+		const authUser = getAuthUser(c);
+		if (!authUser) {
+			return c.json({ error: 'Unauthorized' }, 401);
 		}
+
+		const body = await c.req.json();
+		const { githubPat, discordWebhook, telegramToken, telegramChatId } = body;
+
+		// Use authenticated user's GitHub username
+		const githubUsername = authUser.githubUsername;
 
 		if (!githubPat) {
 			return c.json({ error: 'GitHub Personal Access Token is required' }, 400);
@@ -79,8 +85,7 @@ user.post('/preferences', async (c) => {
 				.bind(encryptedGithubPat, encryptedDiscord, encryptedTelegramToken, encryptedTelegramChatId, githubUsername)
 				.run();
 		} else {
-			// Create new user
-			const newUserId = userId || crypto.randomUUID();
+			// Create new user with authenticated user ID
 			await c.env.DB.prepare(
 				`
         INSERT INTO users (id, github_username, github_id, github_pat, discord_webhook, telegram_token, telegram_chat_id, is_active)
@@ -88,9 +93,9 @@ user.post('/preferences', async (c) => {
       `
 			)
 				.bind(
-					newUserId,
+					authUser.id,
 					githubUsername,
-					githubUsername, // Use username as github_id for now
+					authUser.id, // Use authenticated user ID
 					encryptedGithubPat,
 					encryptedDiscord,
 					encryptedTelegramToken,
@@ -118,21 +123,21 @@ user.post('/preferences', async (c) => {
  * GET /api/user/dashboard
  * Get dashboard data (streak, contributions, notifications)
  */
-user.get('/dashboard', async (c) => {
+user.get('/dashboard', authMiddleware, async (c) => {
 	try {
-		const userId = c.req.query('userId');
-
-		if (!userId) {
-			return c.json({ error: 'User ID is required' }, 400);
+		// Get authenticated user from context
+		const authUser = getAuthUser(c);
+		if (!authUser) {
+			return c.json({ error: 'Unauthorized' }, 401);
 		}
 
-		// Fetch user from database (userId can be either id or github_username)
+		// Fetch user from database using authenticated user's ID
 		const userResult = await c.env.DB.prepare(
 			`
       SELECT * FROM users WHERE id = ? OR github_username = ?
     `
 		)
-			.bind(userId, userId)
+			.bind(authUser.id, authUser.githubUsername)
 			.first();
 
 		if (!userResult) {
@@ -163,7 +168,7 @@ user.get('/dashboard', async (c) => {
 			githubService.getCurrentStreak(user.github_username),
 		]);
 
-		// Fetch recent notifications
+		// Fetch recent notifications using authenticated user's ID
 		const notificationsResult = await c.env.DB.prepare(
 			`
       SELECT id, channel, status, error_message, sent_at
@@ -173,7 +178,7 @@ user.get('/dashboard', async (c) => {
       LIMIT 10
     `
 		)
-			.bind(userId)
+			.bind(authUser.id)
 			.all();
 
 		const notifications = notificationsResult.results || [];

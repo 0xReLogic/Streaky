@@ -92,18 +92,28 @@ export default function SetupPage() {
     setIsLoading(true);
 
     try {
+      // Get session token for authentication
+      const sessionToken = document.cookie
+        .split(';')
+        .find(c => c.trim().startsWith('next-auth.session-token=') || c.trim().startsWith('__Secure-next-auth.session-token='))
+        ?.split('=')[1];
+
+      if (!sessionToken) {
+        throw new Error('Session token not found. Please sign in again.');
+      }
+
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8787";
       const response = await fetch(`${apiUrl}/api/user/preferences`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          "Authorization": `Bearer ${sessionToken}`,
         },
         body: JSON.stringify({
           githubPat,
           discordWebhook: discordWebhook || undefined,
           telegramToken: telegramToken || undefined,
           telegramChatId: telegramChatId || undefined,
-          githubUsername: session?.user?.username,
         }),
       });
 

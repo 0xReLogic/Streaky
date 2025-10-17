@@ -9,6 +9,7 @@ export interface Env {
 
   // Environment variables (secrets)
   ENCRYPTION_KEY: string;
+  NEXTAUTH_SECRET: string;
 
   // Optional: KV namespace for caching (can be added later for better performance)
   // CACHE: KVNamespace;

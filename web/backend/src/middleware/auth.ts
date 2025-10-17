@@ -1,6 +1,6 @@
 /**
  * Authentication Middleware
- * Validates session tokens and attaches user info to context
+ * Validates JWT session tokens from NextAuth.js and attaches user info to context
  */
 
 import { Context, Next } from 'hono';
@@ -9,38 +9,125 @@ import { Env } from '../types/env';
 export interface AuthUser {
   id: string;
   githubUsername: string;
+  email?: string;
+}
+
+interface JWTPayload {
+  sub?: string;
+  login?: string;
+  email?: string;
+  iat?: number;
+  exp?: number;
 }
 
 /**
- * Simple authentication middleware
- * In production, this should validate JWT tokens from NextAuth.js
+ * Decode and verify JWT token from NextAuth.js
  */
-export async function authMiddleware(c: Context<{ Bindings: Env }>, next: Next) {
+async function verifyJWT(token: string, secret: string): Promise<JWTPayload> {
+  // Import Web Crypto API key
+  const encoder = new TextEncoder();
+  const keyData = encoder.encode(secret);
+  
+  const key = await crypto.subtle.importKey(
+    'raw',
+    keyData,
+    { name: 'HMAC', hash: 'SHA-256' },
+    false,
+    ['verify']
+  );
+
+  // Split JWT into parts
+  const parts = token.split('.');
+  if (parts.length !== 3) {
+    throw new Error('Invalid JWT format');
+  }
+
+  const [headerB64, payloadB64, signatureB64] = parts;
+  
+  // Verify signature
+  const data = encoder.encode(`${headerB64}.${payloadB64}`);
+  const signature = base64UrlDecode(signatureB64);
+  
+  const isValid = await crypto.subtle.verify(
+    'HMAC',
+    key,
+    signature,
+    data
+  );
+
+  if (!isValid) {
+    throw new Error('Invalid JWT signature');
+  }
+
+  // Decode payload
+  const payloadJson = atob(payloadB64.replace(/-/g, '+').replace(/_/g, '/'));
+  const payload: JWTPayload = JSON.parse(payloadJson);
+
+  // Check expiration
+  if (payload.exp && payload.exp < Date.now() / 1000) {
+    throw new Error('JWT token expired');
+  }
+
+  return payload;
+}
+
+/**
+ * Decode base64url string to Uint8Array
+ */
+function base64UrlDecode(str: string): Uint8Array {
+  const base64 = str.replace(/-/g, '+').replace(/_/g, '/');
+  const binary = atob(base64);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) {
+    bytes[i] = binary.charCodeAt(i);
+  }
+  return bytes;
+}
+
+/**
+ * Authentication middleware
+ * Validates JWT tokens from NextAuth.js and attaches user info to context
+ */
+export async function authMiddleware(c: Context<{ Bindings: Env; Variables: { user: AuthUser } }>, next: Next) {
   const authHeader = c.req.header('Authorization');
 
   if (!authHeader?.startsWith('Bearer ')) {
-    return c.json({ error: 'Unauthorized' }, 401);
+    return c.json({ error: 'Unauthorized - Missing or invalid Authorization header' }, 401);
   }
 
-  // Note: JWT validation will be implemented when integrating with NextAuth.js
-  // For now, we accept any Bearer token for development
-  // In production, validate JWT with NextAuth secret
+  const token = authHeader.substring(7);
+
+  if (!c.env.NEXTAUTH_SECRET) {
+    console.error('NEXTAUTH_SECRET not configured');
+    return c.json({ error: 'Server configuration error' }, 500);
+  }
 
   try {
-    // Placeholder: In real implementation, decode and validate JWT
-    // const token = authHeader.substring(7);
-    // const decoded = await verifyJWT(token, c.env.NEXTAUTH_SECRET);
+    const decoded = await verifyJWT(token, c.env.NEXTAUTH_SECRET);
+
+    if (!decoded.sub || !decoded.login) {
+      return c.json({ error: 'Invalid token payload' }, 401);
+    }
+
+    // Attach user info to context
+    const user: AuthUser = {
+      id: decoded.sub,
+      githubUsername: decoded.login,
+      email: decoded.email,
+    };
+
+    c.set('user', user);
     
     await next();
   } catch (error) {
     console.error('Auth error:', error);
-    return c.json({ error: 'Invalid token' }, 401);
+    return c.json({ error: 'Invalid or expired token' }, 401);
   }
 }
 
 /**
  * Get authenticated user from context
  */
-export function getAuthUser(c: Context): AuthUser | null {
-  return c.get('user') as AuthUser | null;
+export function getAuthUser(c: Context<{ Bindings: Env; Variables: { user: AuthUser } }>): AuthUser | null {
+  return c.get('user') || null;
 }
