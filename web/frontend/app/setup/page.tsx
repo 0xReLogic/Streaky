@@ -33,17 +33,14 @@ export default function SetupPage() {
   }
 
   const validateForm = () => {
-    // GitHub PAT validation (required)
-    if (!githubPat || githubPat.trim().length === 0) {
-      toast.error("GitHub Personal Access Token is required");
-      return false;
-    }
-
-    if (!githubPat.startsWith("ghp_") && !githubPat.startsWith("github_pat_")) {
-      toast.error(
-        "Invalid GitHub PAT format. Must start with 'ghp_' or 'github_pat_'"
-      );
-      return false;
+    // GitHub PAT validation (optional if updating)
+    if (githubPat && githubPat.trim().length > 0) {
+      if (!githubPat.startsWith("ghp_") && !githubPat.startsWith("github_pat_")) {
+        toast.error(
+          "Invalid GitHub PAT format. Must start with 'ghp_' or 'github_pat_'"
+        );
+        return false;
+      }
     }
 
     // Discord webhook validation (optional)
@@ -76,11 +73,9 @@ export default function SetupPage() {
       return false;
     }
 
-    // At least one notification channel required
-    if (!discordWebhook && !telegramToken) {
-      toast.error(
-        "At least one notification channel (Discord or Telegram) is required"
-      );
+    // At least one field must be filled
+    if (!githubPat && !discordWebhook && !telegramToken) {
+      toast.error("Please fill at least one field to update");
       return false;
     }
 
@@ -167,7 +162,7 @@ export default function SetupPage() {
                   htmlFor="githubPat"
                   className="text-white text-base font-semibold"
                 >
-                  GitHub Personal Access Token *
+                  GitHub Personal Access Token (Optional if updating)
                 </Label>
                 <p className="text-white/60 text-sm mt-1 mb-3">
                   Required to check your contribution streak.{" "}
@@ -190,7 +185,6 @@ export default function SetupPage() {
                   onChange={(e) => setGithubPat(e.target.value)}
                   placeholder="ghp_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
                   className="bg-white/10 border-white/30 text-white placeholder:text-white/40"
-                  required
                 />
               </div>
             </div>
@@ -238,12 +232,12 @@ export default function SetupPage() {
                 <p className="text-white/60 text-sm mt-1 mb-3">
                   Get notifications via Telegram.{" "}
                   <a
-                    href="https://core.telegram.org/bots#6-botfather"
+                    href="https://telegram.me/BotFather"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-white underline hover:text-white/80"
                   >
-                    Create a bot with BotFather
+                    Open BotFather
                   </a>
                 </p>
                 <Input
@@ -264,16 +258,16 @@ export default function SetupPage() {
                   Telegram Chat ID (Optional)
                 </Label>
                 <p className="text-white/60 text-sm mt-1 mb-3">
-                  Your Telegram chat ID. Send /start to your bot, then use{" "}
+                  Your Telegram chat ID.{" "}
                   <a
-                    href="https://api.telegram.org/bot<YOUR_BOT_TOKEN>/getUpdates"
+                    href="https://telegram.me/userinfobot"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-white underline hover:text-white/80"
                   >
-                    getUpdates
+                    Open @userinfobot
                   </a>{" "}
-                  to find it.
+                  and send /start to get your ID.
                 </p>
                 <Input
                   id="telegramChatId"
