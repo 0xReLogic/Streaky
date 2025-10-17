@@ -15,6 +15,11 @@ binding = "DB"
 database_name = "streaky-db"
 database_id = "f746bca3-44f6-4163-becf-1aecaa2a02c2"
 
+# Analytics Engine Binding
+[[analytics_engine_datasets]]
+binding = "ANALYTICS"
+dataset = "streaky_metrics"
+
 # Cron Triggers - Daily at 8 PM UTC
 [triggers]
 crons = ["0 20 * * *"]

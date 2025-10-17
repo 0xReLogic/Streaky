@@ -7,6 +7,9 @@ export interface Env {
   // D1 Database binding
   DB: D1Database;
 
+  // Analytics Engine binding
+  ANALYTICS: AnalyticsEngineDataset;
+
   // Environment variables (secrets)
   ENCRYPTION_KEY: string;
   NEXTAUTH_SECRET: string;

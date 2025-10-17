@@ -34,7 +34,23 @@ export class WorkerMonitoring {
 			labels,
 		};
 
+		// Log to console for debugging
 		console.log('[Metrics]', JSON.stringify(data));
+
+		// Write to Analytics Engine for SQL querying
+		try {
+			const blobs = [metric]; // metric name
+			const doubles = [value, Date.now()]; // value + timestamp
+			const indexes = labels ? Object.keys(labels).map((k) => `${k}:${labels[k]}`) : []; // labels as indexes
+
+			this.env.ANALYTICS.writeDataPoint({
+				blobs,
+				doubles,
+				indexes,
+			});
+		} catch (error) {
+			console.error('[Metrics] Failed to write to Analytics Engine:', error);
+		}
 	}
 
 	/**
