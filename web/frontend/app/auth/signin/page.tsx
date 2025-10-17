@@ -16,7 +16,7 @@ export default function SignInPage() {
     }
 
     setIsLoading(true);
-    await signIn("github", { callbackUrl: "/setup" });
+    await signIn("github", { callbackUrl: "/auth/callback" });
   };
 
   return (
