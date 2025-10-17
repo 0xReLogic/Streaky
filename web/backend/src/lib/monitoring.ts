@@ -39,9 +39,11 @@ export class WorkerMonitoring {
 
 		// Write to Analytics Engine for SQL querying
 		try {
-			const blobs = [metric]; // metric name
+			// Convert labels to blobs (strings)
+			const labelBlobs = labels ? Object.entries(labels).map(([k, v]) => `${k}:${v}`) : [];
+			const blobs = [metric, ...labelBlobs]; // metric name + labels as blobs
 			const doubles = [value, Date.now()]; // value + timestamp
-			const indexes = labels ? Object.keys(labels).map((k) => `${k}:${labels[k]}`) : []; // labels as indexes
+			const indexes = [metric]; // single index for sampling by metric type
 
 			this.env.ANALYTICS.writeDataPoint({
 				blobs,
@@ -142,7 +144,7 @@ export class WorkerMonitoring {
 /**
  * Performance monitoring middleware
  */
-export async function performanceMiddleware(c: Context, next: any) {
+export async function performanceMiddleware(c: Context<{ Bindings: Env }>, next: any) {
 	const startTime = Date.now();
 	const path = c.req.path;
 	const method = c.req.method;
@@ -160,6 +162,17 @@ export async function performanceMiddleware(c: Context, next: any) {
 		duration,
 		timestamp: new Date().toISOString(),
 	});
+
+	// Write to Analytics Engine
+	try {
+		c.env.ANALYTICS?.writeDataPoint({
+			blobs: [path, method, status.toString()], // endpoint, method, status
+			doubles: [duration, Date.now()], // duration, timestamp
+			indexes: [path], // single index for sampling by endpoint
+		});
+	} catch (error) {
+		console.error('[Performance] Failed to write to Analytics Engine:', error);
+	}
 
 	// Alert if slow request (>3s)
 	if (duration > 3000) {
