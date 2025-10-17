@@ -6,13 +6,42 @@
 import { Hono } from 'hono';
 import { Env } from './types/env';
 import { corsMiddleware } from './middleware/cors';
+import { RateLimiters } from './middleware/rate-limit';
 import userRoutes from './routes/user';
 import { checkAllUsersStreaks } from './cron/streak-checker';
 
 const app = new Hono<{ Bindings: Env }>();
 
+// Security headers middleware
+app.use('*', async (c, next) => {
+	await next();
+	
+	// Add security headers to all responses
+	c.header('X-Content-Type-Options', 'nosniff');
+	c.header('X-Frame-Options', 'DENY');
+	c.header('X-XSS-Protection', '1; mode=block');
+	c.header('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
+	c.header('Referrer-Policy', 'strict-origin-when-cross-origin');
+});
+
+// Request size limit middleware
+app.use('/api/*', async (c, next) => {
+	const contentLength = c.req.header('content-length');
+	const MAX_SIZE = 1024 * 1024; // 1MB limit
+	
+	if (contentLength && parseInt(contentLength) > MAX_SIZE) {
+		return c.json({ error: 'Request too large', maxSizeBytes: MAX_SIZE }, 413);
+	}
+	
+	await next();
+});
+
 // Apply CORS middleware
 app.use('*', corsMiddleware);
+
+// Apply rate limiting
+app.use('/api/user/*', RateLimiters.api); // 60 req/min for user endpoints
+app.use('/api/cron/*', RateLimiters.strict); // 10 req/min for cron trigger
 
 // Health check endpoint
 app.get('/', (c) => {
@@ -35,8 +64,10 @@ app.post('/api/cron/trigger', async (c) => {
 		await checkAllUsersStreaks(c.env);
 		return c.json({ success: true, message: 'Cron job triggered successfully' });
 	} catch (error) {
-		console.error('Manual cron trigger error:', error);
-		return c.json({ error: 'Cron job failed', details: String(error) }, 500);
+		// Log detailed error server-side
+		console.error('[Cron] Manual trigger failed:', error);
+		// Return generic error to client (don't leak details)
+		return c.json({ error: 'Cron job failed' }, 500);
 	}
 });
 
@@ -50,7 +81,15 @@ app.notFound((c) => {
 
 // Error handler
 app.onError((err, c) => {
-	console.error('Unhandled error:', err);
+	// Log error details server-side only
+	console.error('[ERROR]', {
+		message: err.message,
+		stack: err.stack,
+		url: c.req.url,
+		method: c.req.method,
+	});
+	
+	// Return generic error to client (don't leak details)
 	return c.json({ error: 'Internal server error' }, 500);
 });
 
