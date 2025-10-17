@@ -73,10 +73,9 @@ We welcome contributions! Check out our [Contributing Guide](./CONTRIBUTING.md) 
 ```
 streaky/
 ├── cli/              # Python CLI tool
-├── web/              # Full-stack web application (Production)
-│   ├── frontend/     # Next.js 15 + shadcn/ui + Spline
-│   └── backend/      # Cloudflare Workers + D1 Database
-└── SECURITY.md       # Security documentation and roadmap
+└── web/              # Full-stack web application (Production)
+    ├── frontend/     # Next.js 15 + shadcn/ui + Spline
+    └── backend/      # Cloudflare Workers + D1 Database
 ```
 
 ---
