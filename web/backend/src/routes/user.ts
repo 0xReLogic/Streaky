@@ -30,11 +30,7 @@ user.post('/preferences', authMiddleware, async (c) => {
 		const githubUsername = authUser.githubUsername;
 
 		// Check if user exists first
-		const existingUser = await c.env.DB.prepare(
-			`SELECT id, github_pat FROM users WHERE github_username = ?`
-		)
-			.bind(githubUsername)
-			.first();
+		const existingUser = await c.env.DB.prepare(`SELECT id, github_pat FROM users WHERE github_username = ?`).bind(githubUsername).first();
 
 		// If user doesn't exist, PAT is required
 		if (!existingUser && !githubPat) {
@@ -92,12 +88,10 @@ user.post('/preferences', authMiddleware, async (c) => {
 			}
 
 			if (updates.length > 0) {
-				updates.push('updated_at = datetime(\'now\')');
+				updates.push("updated_at = datetime('now')");
 				values.push(githubUsername);
 
-				await c.env.DB.prepare(
-					`UPDATE users SET ${updates.join(', ')} WHERE github_username = ?`
-				)
+				await c.env.DB.prepare(`UPDATE users SET ${updates.join(', ')} WHERE github_username = ?`)
 					.bind(...values)
 					.run();
 			}
