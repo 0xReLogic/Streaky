@@ -4,7 +4,19 @@ import { useState } from "react";
 import { signIn } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { SocialIcons3D } from "@/components/social-icons-3d";
+import dynamic from "next/dynamic";
+
+const SocialIcons3D = dynamic(
+  () => import("@/components/social-icons-3d").then((mod) => ({ default: mod.SocialIcons3D })),
+  { 
+    ssr: false,
+    loading: () => (
+      <div className="flex items-center justify-center h-full">
+        <div className="text-6xl animate-pulse">🔥</div>
+      </div>
+    ),
+  }
+);
 
 export default function SignInPage() {
   const [agreedToTerms, setAgreedToTerms] = useState(false);
@@ -31,11 +43,7 @@ export default function SignInPage() {
         - Consider lazy loading with dynamic import
       */}
       <div className="w-1/2 h-screen relative hidden md:flex items-center justify-center overflow-hidden bg-white">
-        <div className="text-center">
-          <div className="text-6xl mb-4">🚀</div>
-          <p className="text-black font-bold text-xl">Test Component</p>
-          <p className="text-gray-600 mt-2">If you see this, component renders!</p>
-        </div>
+        <SocialIcons3D />
       </div>
 
       {/* Right: Sign In Form - Black Background */}
