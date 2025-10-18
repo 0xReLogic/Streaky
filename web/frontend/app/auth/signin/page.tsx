@@ -31,7 +31,11 @@ export default function SignInPage() {
         - Consider lazy loading with dynamic import
       */}
       <div className="w-1/2 h-screen relative hidden md:flex items-center justify-center overflow-hidden bg-white">
-        <SocialIcons3D />
+        <div className="text-center">
+          <div className="text-6xl mb-4">🚀</div>
+          <p className="text-black font-bold text-xl">Test Component</p>
+          <p className="text-gray-600 mt-2">If you see this, component renders!</p>
+        </div>
       </div>
 
       {/* Right: Sign In Form - Black Background */}
