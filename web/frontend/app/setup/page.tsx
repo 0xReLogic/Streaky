@@ -164,13 +164,22 @@ export default function SetupPage() {
               Configure your GitHub access and notification preferences
             </p>
           </div>
-          <Button
-            onClick={handleLogout}
-            variant="outline"
-            className="bg-black text-white hover:bg-gray-900 border border-white/20"
-          >
-            Logout
-          </Button>
+          <div className="flex gap-3">
+            <Button
+              onClick={() => router.push("/dashboard")}
+              variant="outline"
+              className="bg-white text-black hover:bg-gray-200 border-0"
+            >
+              Back to Dashboard
+            </Button>
+            <Button
+              onClick={handleLogout}
+              variant="outline"
+              className="bg-black text-white hover:bg-gray-900 border border-white/20"
+            >
+              Logout
+            </Button>
+          </div>
         </div>
 
         {/* Form Card */}
