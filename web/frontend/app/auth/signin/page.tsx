@@ -4,7 +4,6 @@ import { useState } from "react";
 import { signIn } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import Spline from "@splinetool/react-spline/next";
 
 export default function SignInPage() {
   const [agreedToTerms, setAgreedToTerms] = useState(false);
@@ -31,10 +30,6 @@ export default function SignInPage() {
         - Consider lazy loading with dynamic import
       */}
       <div className="w-1/2 h-screen relative hidden md:flex items-center justify-center overflow-hidden bg-white">
-        <Spline 
-          scene="https://prod.spline.design/Crtp5sGqSJ76CyXT/scene.splinecode"
-          style={{ width: '100%', height: '100%' }}
-        />
       </div>
 
       {/* Right: Sign In Form - Black Background */}
