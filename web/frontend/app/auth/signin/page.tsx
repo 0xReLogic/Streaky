@@ -4,6 +4,7 @@ import { useState } from "react";
 import { signIn } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
+import { SocialIcons3D } from "@/components/social-icons-3d";
 
 export default function SignInPage() {
   const [agreedToTerms, setAgreedToTerms] = useState(false);
@@ -30,6 +31,7 @@ export default function SignInPage() {
         - Consider lazy loading with dynamic import
       */}
       <div className="w-1/2 h-screen relative hidden md:flex items-center justify-center overflow-hidden bg-white">
+        <SocialIcons3D />
       </div>
 
       {/* Right: Sign In Form - Black Background */}
