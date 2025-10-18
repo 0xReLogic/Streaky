@@ -64,8 +64,8 @@ export default function DashboardPage() {
   // Redirect if not authenticated
   if (status === "loading") {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#054980] via-[#043a66] to-[#032a4d]">
-        <div className="text-white">Loading...</div>
+      <div className="min-h-screen flex items-center justify-center bg-black">
+        <div className="text-white text-lg">Loading...</div>
       </div>
     );
   }
@@ -84,28 +84,30 @@ export default function DashboardPage() {
   };
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-[#054980] via-[#043a66] to-[#032a4d] py-12 px-4">
-      <div className="max-w-6xl mx-auto">
+    <main className="min-h-screen bg-black py-8 px-4">
+      <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="flex justify-between items-center mb-8">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-12 pb-6 border-b border-white/10">
           <div>
-            <h1 className="text-4xl font-bold text-white mb-2">Dashboard</h1>
-            <p className="text-white/80">
-              Welcome back, {session?.user?.name || session?.user?.username}!
+            <h1 className="text-4xl md:text-5xl font-bold text-white mb-2 tracking-tight">
+              Dashboard
+            </h1>
+            <p className="text-gray-400 text-lg">
+              Welcome back, {session?.user?.name || session?.user?.username}
             </p>
           </div>
           <div className="flex gap-3">
             <Button
               onClick={handleGoToSettings}
               variant="outline"
-              className="bg-white/20 text-white hover:bg-white/30 border border-white/30"
+              className="bg-white text-black hover:bg-gray-200 border-0"
             >
               Settings
             </Button>
             <Button
               onClick={handleLogout}
               variant="outline"
-              className="bg-red-500/20 text-white hover:bg-red-500/30 border border-red-500/30"
+              className="bg-black text-white hover:bg-gray-900 border border-white/20"
             >
               Logout
             </Button>
@@ -118,10 +120,10 @@ export default function DashboardPage() {
             {[1, 2].map((i) => (
               <div
                 key={i}
-                className="bg-white/10 backdrop-blur-lg rounded-lg p-8 animate-pulse"
+                className="bg-white/5 border border-white/10 rounded-xl p-8 animate-pulse"
               >
-                <div className="h-8 bg-white/20 rounded w-1/2 mb-4"></div>
-                <div className="h-16 bg-white/20 rounded w-3/4"></div>
+                <div className="h-6 bg-white/10 rounded w-1/3 mb-4"></div>
+                <div className="h-12 bg-white/10 rounded w-2/3"></div>
               </div>
             ))}
           </div>
@@ -129,15 +131,15 @@ export default function DashboardPage() {
 
         {/* Error State */}
         {error && (
-          <div className="bg-red-500/20 border border-red-500/50 rounded-lg p-6">
-            <h2 className="text-red-200 font-semibold mb-2">
+          <div className="bg-white/5 border border-red-500/30 rounded-xl p-8">
+            <h2 className="text-white font-semibold text-xl mb-2">
               Error Loading Dashboard
             </h2>
-            <p className="text-red-200/80 text-sm mb-4">{error.message}</p>
+            <p className="text-gray-400 mb-4">{error.message}</p>
             {error.message.includes("not configured") && (
               <Button
                 onClick={handleGoToSettings}
-                className="bg-white text-[#054980] hover:bg-white/90"
+                className="bg-white text-black hover:bg-gray-200"
               >
                 Go to Settings
               </Button>
@@ -151,102 +153,62 @@ export default function DashboardPage() {
             {/* Stats Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Current Streak Card */}
-              <Card className="bg-gradient-to-br from-orange-500/20 to-red-500/20 border-orange-500/30 backdrop-blur-lg">
+              <Card className="bg-white border-0 hover:shadow-2xl transition-shadow duration-300">
                 <CardHeader>
                   <div className="flex items-center justify-between">
-                    <CardTitle className="text-white">Current Streak</CardTitle>
-                    <svg
-                      className="w-10 h-10 text-orange-400"
-                      fill="currentColor"
-                      viewBox="0 0 20 20"
-                    >
-                      <path
-                        fillRule="evenodd"
-                        d="M12.395 2.553a1 1 0 00-1.45-.385c-.345.23-.614.558-.822.88-.214.33-.403.713-.57 1.116-.334.804-.614 1.768-.84 2.734a31.365 31.365 0 00-.613 3.58 2.64 2.64 0 01-.945-1.067c-.328-.68-.398-1.534-.398-2.654A1 1 0 005.05 6.05 6.981 6.981 0 003 11a7 7 0 1011.95-4.95c-.592-.591-.98-.985-1.348-1.467-.363-.476-.724-1.063-1.207-2.03zM12.12 15.12A3 3 0 017 13s.879.5 2.5.5c0-1 .5-4 1.25-4.5.5 1 .786 1.293 1.371 1.879A2.99 2.99 0 0113 13a2.99 2.99 0 01-.879 2.121z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
+                    <CardTitle className="text-black text-xl">Current Streak</CardTitle>
+                    <div className="text-5xl">🔥</div>
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-7xl font-bold text-white mb-2">
+                  <div className="text-7xl font-bold text-black mb-2 tracking-tighter">
                     {data.currentStreak}
                   </div>
-                  <p className="text-white/80 text-lg">
-                    {data.currentStreak === 1 ? "day" : "days"} in a row 🔥
+                  <p className="text-gray-600 text-lg font-medium">
+                    {data.currentStreak === 1 ? "day" : "days"} in a row
                   </p>
                 </CardContent>
               </Card>
 
               {/* Today's Status Card */}
-              <Card
-                className={`${
+              <Card className={`${
                   data.contributedToday
-                    ? "bg-gradient-to-br from-green-500/20 to-emerald-500/20 border-green-500/30"
-                    : "bg-gradient-to-br from-yellow-500/20 to-amber-500/20 border-yellow-500/30"
-                } backdrop-blur-lg`}
+                    ? "bg-black border-0"
+                    : "bg-white border-2 border-black"
+                } hover:shadow-2xl transition-shadow duration-300`}
               >
                 <CardHeader>
                   <div className="flex items-center justify-between">
-                    <CardTitle className="text-white">
+                    <CardTitle className={data.contributedToday ? "text-white text-xl" : "text-black text-xl"}>
                       Today&apos;s Status
                     </CardTitle>
-                    {data.contributedToday ? (
-                      <svg
-                        className="w-10 h-10 text-green-400"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                        />
-                      </svg>
-                    ) : (
-                      <svg
-                        className="w-10 h-10 text-yellow-400"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
-                        />
-                      </svg>
-                    )}
+                    <div className="text-5xl">
+                      {data.contributedToday ? "✓" : "⚠️"}
+                    </div>
                   </div>
                 </CardHeader>
                 <CardContent>
                   {data.contributedToday ? (
                     <div>
-                      <div className="text-5xl font-bold text-green-400 mb-2">
+                      <div className="text-7xl font-bold text-white mb-2 tracking-tighter">
                         {data.contributionsToday}
                       </div>
-                      <p className="text-white/80 text-lg">
+                      <p className="text-gray-400 text-lg font-medium">
                         {data.contributionsToday === 1
-                          ? "contribution today ✓"
-                          : "contributions today ✓"}
+                          ? "contribution today"
+                          : "contributions today"}
                       </p>
                     </div>
                   ) : (
                     <div>
-                      <div className="text-3xl font-bold text-yellow-400 mb-3">
+                      <div className="text-3xl font-bold text-black mb-3">
                         No contributions yet
                       </div>
-                      <p className="text-white/80 mb-3">
+                      <p className="text-gray-600 text-lg mb-4">
                         Make a commit to keep your streak!
                       </p>
-                      <Badge
-                        variant="outline"
-                        className="bg-yellow-500/20 text-yellow-200 border-yellow-500/50"
-                      >
-                        ⚠️ Action needed today
+                      <Badge className="bg-black text-white hover:bg-gray-800 border-0 px-4 py-2 text-sm">
+                        Action needed today
                       </Badge>
                     </div>
                   )}
@@ -255,51 +217,38 @@ export default function DashboardPage() {
             </div>
 
             {/* Notification History */}
-            <Card className="bg-white/10 backdrop-blur-lg border-white/20">
+            <Card className="bg-white border-0 hover:shadow-2xl transition-shadow duration-300">
               <CardHeader>
-                <CardTitle className="text-white text-2xl">
+                <CardTitle className="text-black text-2xl">
                   Notification History
                 </CardTitle>
-                <CardDescription className="text-white/60">
+                <CardDescription className="text-gray-600">
                   Recent alerts sent to your configured channels
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 {!data.notifications || data.notifications.length === 0 ? (
-                  <div className="text-center py-12">
-                    <svg
-                      className="w-16 h-16 mx-auto mb-4 text-white/40"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={1.5}
-                        d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
-                      />
-                    </svg>
-                    <p className="text-white/60 text-lg font-medium">
+                  <div className="text-center py-16">
+                    <div className="text-6xl mb-4">🔔</div>
+                    <p className="text-gray-800 text-lg font-semibold mb-2">
                       No notifications sent yet
                     </p>
-                    <p className="text-white/40 text-sm mt-2">
-                      You&apos;ll see your notification history here once alerts
-                      are sent
+                    <p className="text-gray-500 text-sm">
+                      You&apos;ll see your notification history here once alerts are sent
                     </p>
                   </div>
                 ) : (
-                  <div className="rounded-md border border-white/20">
+                  <div className="overflow-hidden">
                     <Table>
                       <TableHeader>
-                        <TableRow className="border-white/20 hover:bg-white/5">
-                          <TableHead scope="col" className="text-white/80">
+                        <TableRow className="border-gray-200 hover:bg-gray-50">
+                          <TableHead scope="col" className="text-gray-700 font-semibold">
                             Date & Time
                           </TableHead>
-                          <TableHead scope="col" className="text-white/80">
+                          <TableHead scope="col" className="text-gray-700 font-semibold">
                             Channel
                           </TableHead>
-                          <TableHead scope="col" className="text-white/80">
+                          <TableHead scope="col" className="text-gray-700 font-semibold">
                             Status
                           </TableHead>
                         </TableRow>
@@ -308,18 +257,17 @@ export default function DashboardPage() {
                         {data.notifications.map((notification) => (
                           <TableRow
                             key={notification.id}
-                            className="border-white/10 hover:bg-white/5"
+                            className="border-gray-100 hover:bg-gray-50 transition-colors"
                           >
-                            <TableCell className="text-white/90 font-medium">
+                            <TableCell className="text-gray-900 font-medium">
                               {new Date(notification.sentAt).toLocaleString()}
                             </TableCell>
                             <TableCell>
                               <Badge
-                                variant="outline"
                                 className={
                                   notification.channel === "discord"
-                                    ? "bg-indigo-500/20 text-indigo-200 border-indigo-500/30"
-                                    : "bg-blue-500/20 text-blue-200 border-blue-500/30"
+                                    ? "bg-black text-white hover:bg-gray-800 border-0"
+                                    : "bg-white text-black hover:bg-gray-100 border-2 border-black"
                                 }
                               >
                                 {notification.channel === "discord"
@@ -329,11 +277,10 @@ export default function DashboardPage() {
                             </TableCell>
                             <TableCell>
                               <Badge
-                                variant="outline"
                                 className={
                                   notification.status === "sent"
-                                    ? "bg-green-500/20 text-green-200 border-green-500/30"
-                                    : "bg-red-500/20 text-red-200 border-red-500/30"
+                                    ? "bg-black text-white hover:bg-gray-800 border-0"
+                                    : "bg-white text-red-600 hover:bg-red-50 border-2 border-red-600"
                                 }
                               >
                                 {notification.status === "sent"
