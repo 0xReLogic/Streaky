@@ -31,10 +31,7 @@ export default function SignInPage() {
         - Consider lazy loading with dynamic import
       */}
       <div className="w-1/2 relative hidden md:flex items-center justify-center overflow-hidden bg-white">
-        <Spline
-          scene="https://prod.spline.design/lB9GTOKCr7v4rBsr/scene.splinecode"
-          className="w-full h-full"
-        />
+        <Spline scene="https://prod.spline.design/tUeURQFjwX7h9EDL/scene.splinecode" />
       </div>
 
       {/* Right: Sign In Form - Black Background */}
