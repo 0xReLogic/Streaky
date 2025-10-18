@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { LoadingSpinner } from "@/components/loading-spinner";
 import React from "react";
 
 export default function SetupPage() {
@@ -41,11 +42,7 @@ export default function SetupPage() {
 
   // Redirect if not authenticated
   if (status === "loading" || isCheckingStatus) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#054980] via-[#043a66] to-[#032a4d]">
-        <div className="text-white">Loading...</div>
-      </div>
-    );
+    return <LoadingSpinner />;
   }
 
   if (status === "unauthenticated") {
@@ -155,53 +152,53 @@ export default function SetupPage() {
   };
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-[#054980] via-[#043a66] to-[#032a4d] py-12 px-4">
-      <div className="max-w-2xl mx-auto">
-        <div className="bg-white/10 backdrop-blur-lg rounded-lg p-8 shadow-xl">
-          <div className="mb-8">
-            <div className="flex justify-between items-start mb-4">
-              <div>
-                <h1 className="text-3xl font-bold text-white mb-2">
-                  Setup Your Notifications
-                </h1>
-                <p className="text-white/80">
-                  Configure your GitHub access and notification preferences to get
-                  started
-                </p>
-              </div>
-              <Button
-                onClick={handleLogout}
-                variant="outline"
-                size="sm"
-                className="bg-red-500/20 text-white hover:bg-red-500/30 border border-red-500/30"
-              >
-                Logout
-              </Button>
-            </div>
+    <main className="min-h-screen bg-black py-8 px-4">
+      <div className="max-w-3xl mx-auto">
+        {/* Header */}
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8 pb-6 border-b border-white/10">
+          <div>
+            <h1 className="text-4xl md:text-5xl font-bold text-white mb-2 tracking-tight">
+              Setup
+            </h1>
+            <p className="text-gray-400 text-lg">
+              Configure your GitHub access and notification preferences
+            </p>
           </div>
+          <Button
+            onClick={handleLogout}
+            variant="outline"
+            className="bg-black text-white hover:bg-gray-900 border border-white/20"
+          >
+            Logout
+          </Button>
+        </div>
 
-          <form onSubmit={handleSubmit} className="space-y-6">
+        {/* Form Card */}
+        <div className="bg-white rounded-2xl p-8 md:p-10 shadow-2xl">
+
+          <form onSubmit={handleSubmit} className="space-y-8">
             {/* GitHub PAT Section */}
-            <div className="space-y-4 pb-6 border-b border-white/20">
+            <div className="space-y-4 pb-8 border-b border-gray-200">
               <div>
                 <Label
                   htmlFor="githubPat"
-                  className="text-white text-base font-semibold"
+                  className="text-black text-lg font-bold flex items-center gap-2"
                 >
+                  <span>🔑</span>
                   GitHub Personal Access Token {hasExistingPat ? "(Optional - already configured)" : "(Required)"}
                 </Label>
-                <p className="text-white/60 text-sm mt-1 mb-3">
+                <p className="text-gray-600 text-sm mt-2 mb-3">
                   Required to check your contribution streak.{" "}
                   <a
                     href="https://github.com/settings/personal-access-tokens/new"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-white underline hover:text-white/80"
+                    className="text-black underline hover:text-gray-700 font-semibold"
                   >
                     Generate a token
                   </a>{" "}
                   with{" "}
-                  <code className="bg-white/20 px-1 rounded">read:user</code>{" "}
+                  <code className="bg-gray-100 px-2 py-0.5 rounded font-mono text-sm">read:user</code>{" "}
                   scope.
                 </p>
                 <Input
@@ -210,27 +207,28 @@ export default function SetupPage() {
                   value={githubPat}
                   onChange={(e) => setGithubPat(e.target.value)}
                   placeholder="ghp_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
-                  className="bg-white/10 border-white/30 text-white placeholder:text-white/40"
+                  className="bg-gray-50 border-2 border-gray-200 text-black placeholder:text-gray-400 focus:border-black focus:ring-0 h-12"
                 />
               </div>
             </div>
 
             {/* Discord Section */}
-            <div className="space-y-4 pb-6 border-b border-white/20">
+            <div className="space-y-4 pb-8 border-b border-gray-200">
               <div>
                 <Label
                   htmlFor="discordWebhook"
-                  className="text-white text-base font-semibold"
+                  className="text-black text-lg font-bold flex items-center gap-2"
                 >
+                  <span>💬</span>
                   Discord Webhook URL (Optional)
                 </Label>
-                <p className="text-white/60 text-sm mt-1 mb-3">
+                <p className="text-gray-600 text-sm mt-2 mb-3">
                   Get notifications in your Discord server.{" "}
                   <a
                     href="https://support.discord.com/hc/en-us/articles/228383668-Intro-to-Webhooks"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-white underline hover:text-white/80"
+                    className="text-black underline hover:text-gray-700 font-semibold"
                   >
                     Learn how to create a webhook
                   </a>
@@ -241,27 +239,28 @@ export default function SetupPage() {
                   value={discordWebhook}
                   onChange={(e) => setDiscordWebhook(e.target.value)}
                   placeholder="https://discord.com/api/webhooks/..."
-                  className="bg-white/10 border-white/30 text-white placeholder:text-white/40"
+                  className="bg-gray-50 border-2 border-gray-200 text-black placeholder:text-gray-400 focus:border-black focus:ring-0 h-12"
                 />
               </div>
             </div>
 
             {/* Telegram Section */}
-            <div className="space-y-4">
+            <div className="space-y-6">
               <div>
                 <Label
                   htmlFor="telegramToken"
-                  className="text-white text-base font-semibold"
+                  className="text-black text-lg font-bold flex items-center gap-2"
                 >
+                  <span>✈️</span>
                   Telegram Bot Token (Optional)
                 </Label>
-                <p className="text-white/60 text-sm mt-1 mb-3">
+                <p className="text-gray-600 text-sm mt-2 mb-3">
                   Get notifications via Telegram.{" "}
                   <a
                     href="https://telegram.me/BotFather"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-white underline hover:text-white/80"
+                    className="text-black underline hover:text-gray-700 font-semibold"
                   >
                     Open BotFather
                   </a>
@@ -272,24 +271,24 @@ export default function SetupPage() {
                   value={telegramToken}
                   onChange={(e) => setTelegramToken(e.target.value)}
                   placeholder="123456789:ABCdefGHIjklMNOpqrsTUVwxyz"
-                  className="bg-white/10 border-white/30 text-white placeholder:text-white/40"
+                  className="bg-gray-50 border-2 border-gray-200 text-black placeholder:text-gray-400 focus:border-black focus:ring-0 h-12"
                 />
               </div>
 
               <div>
                 <Label
                   htmlFor="telegramChatId"
-                  className="text-white text-base font-semibold"
+                  className="text-black text-base font-semibold"
                 >
                   Telegram Chat ID (Optional)
                 </Label>
-                <p className="text-white/60 text-sm mt-1 mb-3">
+                <p className="text-gray-600 text-sm mt-2 mb-3">
                   Your Telegram chat ID.{" "}
                   <a
                     href="https://telegram.me/userinfobot"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-white underline hover:text-white/80"
+                    className="text-black underline hover:text-gray-700 font-semibold"
                   >
                     Open @userinfobot
                   </a>{" "}
@@ -301,41 +300,30 @@ export default function SetupPage() {
                   value={telegramChatId}
                   onChange={(e) => setTelegramChatId(e.target.value)}
                   placeholder="123456789"
-                  className="bg-white/10 border-white/30 text-white placeholder:text-white/40"
+                  className="bg-gray-50 border-2 border-gray-200 text-black placeholder:text-gray-400 focus:border-black focus:ring-0 h-12"
                 />
               </div>
             </div>
 
             {/* Submit Button */}
-            <Button
-              type="submit"
-              disabled={isLoading}
-              className="w-full h-12 text-lg bg-white text-[#054980] hover:bg-white/90 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {isLoading ? (
-                <span className="flex items-center gap-2">
-                  <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
-                    <circle
-                      className="opacity-25"
-                      cx="12"
-                      cy="12"
-                      r="10"
-                      stroke="currentColor"
-                      strokeWidth="4"
-                      fill="none"
-                    />
-                    <path
-                      className="opacity-75"
-                      fill="currentColor"
-                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                    />
-                  </svg>
-                  Saving...
-                </span>
-              ) : (
-                "Save Preferences"
-              )}
-            </Button>
+            <div className="pt-4">
+              <Button
+                type="submit"
+                disabled={isLoading}
+                className="w-full h-14 text-lg font-bold bg-black text-white hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+              >
+                {isLoading ? (
+                  <span className="flex items-center gap-3">
+                    <div className="relative w-5 h-5">
+                      <div className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin"></div>
+                    </div>
+                    Saving...
+                  </span>
+                ) : (
+                  "Save Preferences"
+                )}
+              </Button>
+            </div>
           </form>
         </div>
       </div>

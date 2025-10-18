@@ -4,6 +4,7 @@ import { useSession, signOut } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import useSWR from "swr";
 import { Button } from "@/components/ui/button";
+import { LoadingSpinner } from "@/components/loading-spinner";
 import {
   Card,
   CardContent,
@@ -63,11 +64,7 @@ export default function DashboardPage() {
 
   // Redirect if not authenticated
   if (status === "loading") {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-black">
-        <div className="text-white text-lg">Loading...</div>
-      </div>
-    );
+    return <LoadingSpinner />;
   }
 
   if (status === "unauthenticated") {
