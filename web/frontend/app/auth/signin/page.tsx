@@ -6,8 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import dynamic from "next/dynamic";
 
-const Simple3DTest = dynamic(
-  () => import("@/components/simple-3d-test").then((mod) => ({ default: mod.Simple3DTest })),
+const SketchfabIcons = dynamic(
+  () => import("@/components/sketchfab-icons").then((mod) => ({ default: mod.SketchfabIcons })),
   { 
     ssr: false,
     loading: () => (
@@ -43,7 +43,7 @@ export default function SignInPage() {
         - Consider lazy loading with dynamic import
       */}
       <div className="w-1/2 h-screen relative hidden md:flex items-center justify-center overflow-hidden bg-white">
-        <Simple3DTest />
+        <SketchfabIcons />
       </div>
 
       {/* Right: Sign In Form - Black Background */}
