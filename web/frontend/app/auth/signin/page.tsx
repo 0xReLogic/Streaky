@@ -30,8 +30,11 @@ export default function SignInPage() {
         - Add proper error handling and loading states
         - Consider lazy loading with dynamic import
       */}
-      <div className="w-1/2 relative hidden md:flex items-center justify-center overflow-hidden bg-white">
-        <Spline scene="https://prod.spline.design/tUeURQFjwX7h9EDL/scene.splinecode" />
+      <div className="w-1/2 h-screen relative hidden md:flex items-center justify-center overflow-hidden bg-white">
+        <Spline 
+          scene="https://prod.spline.design/Crtp5sGqSJ76CyXT/scene.splinecode"
+          style={{ width: '100%', height: '100%' }}
+        />
       </div>
 
       {/* Right: Sign In Form - Black Background */}
