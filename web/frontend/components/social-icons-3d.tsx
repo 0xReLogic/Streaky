@@ -4,6 +4,17 @@ import { Canvas } from "@react-three/fiber";
 import { OrbitControls, useGLTF } from "@react-three/drei";
 import { Suspense, memo } from "react";
 
+function LoadingFallback() {
+  return (
+    <div className="flex items-center justify-center h-full">
+      <div className="text-center">
+        <div className="text-6xl mb-4 animate-pulse">🔥</div>
+        <p className="text-gray-600">Loading 3D...</p>
+      </div>
+    </div>
+  );
+}
+
 function GitHubIcon() {
   const { scene } = useGLTF("/models/github.glb");
   return <primitive object={scene} scale={1.5} position={[0, 2, 0]} />;
@@ -42,11 +53,16 @@ function SocialIcons3DContent() {
 export const SocialIcons3D = memo(function SocialIcons3D() {
   return (
     <div className="w-full h-full">
-      <Canvas camera={{ position: [0, 0, 8], fov: 50 }}>
-        <Suspense fallback={null}>
-          <SocialIcons3DContent />
-        </Suspense>
-      </Canvas>
+      <Suspense fallback={<LoadingFallback />}>
+        <Canvas 
+          camera={{ position: [0, 0, 8], fov: 50 }}
+          onCreated={() => console.log("Canvas created")}
+        >
+          <Suspense fallback={null}>
+            <SocialIcons3DContent />
+          </Suspense>
+        </Canvas>
+      </Suspense>
     </div>
   );
 });
