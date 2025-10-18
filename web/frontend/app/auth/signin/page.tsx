@@ -4,19 +4,6 @@ import { useState } from "react";
 import { signIn } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import dynamic from "next/dynamic";
-
-const SketchfabIcons = dynamic(
-  () => import("@/components/sketchfab-icons").then((mod) => ({ default: mod.SketchfabIcons })),
-  { 
-    ssr: false,
-    loading: () => (
-      <div className="flex items-center justify-center h-full">
-        <div className="text-6xl animate-pulse">🔥</div>
-      </div>
-    ),
-  }
-);
 
 export default function SignInPage() {
   const [agreedToTerms, setAgreedToTerms] = useState(false);
@@ -43,7 +30,6 @@ export default function SignInPage() {
         - Consider lazy loading with dynamic import
       */}
       <div className="w-1/2 h-screen relative hidden md:flex items-center justify-center overflow-hidden bg-white">
-        <SketchfabIcons />
       </div>
 
       {/* Right: Sign In Form - Black Background */}
