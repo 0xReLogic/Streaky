@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
+import { LoadingSpinner } from "@/components/loading-spinner";
 
 export default function AuthCallbackPage() {
   const router = useRouter();
@@ -34,12 +35,5 @@ export default function AuthCallbackPage() {
     checkUserStatus();
   }, [status, router]);
 
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#054980] via-[#043a66] to-[#032a4d]">
-      <div className="text-center">
-        <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-white mb-4"></div>
-        <p className="text-white text-lg">Setting up your account...</p>
-      </div>
-    </div>
-  );
+  return <LoadingSpinner />;
 }

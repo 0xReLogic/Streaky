@@ -4,6 +4,7 @@ import { useState } from "react";
 import { signIn } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
+import Spline from "@splinetool/react-spline/next";
 
 export default function SignInPage() {
   const [agreedToTerms, setAgreedToTerms] = useState(false);
@@ -30,26 +31,10 @@ export default function SignInPage() {
         - Consider lazy loading with dynamic import
       */}
       <div className="w-1/2 relative hidden md:flex items-center justify-center overflow-hidden bg-white">
-        {/* MOCK: Temporary placeholder - will be replaced with 3D scene */}
-        <div className="text-center text-gray-800">
-          <svg
-            className="w-32 h-32 mx-auto mb-6 opacity-40"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={1.5}
-              d="M13 10V3L4 14h7v7l9-11h-7z"
-            />
-          </svg>
-          <h2 className="text-3xl font-bold mb-2 text-gray-900">Never Miss a Day</h2>
-          <p className="text-gray-600 text-lg">
-            Keep your GitHub streak alive with automated reminders
-          </p>
-        </div>
+        <Spline
+          scene="https://prod.spline.design/lB9GTOKCr7v4rBsr/scene.splinecode"
+          className="w-full h-full"
+        />
       </div>
 
       {/* Right: Sign In Form - Black Background */}

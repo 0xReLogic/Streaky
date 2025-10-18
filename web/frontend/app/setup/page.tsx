@@ -182,9 +182,8 @@ export default function SetupPage() {
               <div>
                 <Label
                   htmlFor="githubPat"
-                  className="text-black text-lg font-bold flex items-center gap-2"
+                  className="text-black text-lg font-bold"
                 >
-                  <span>🔑</span>
                   GitHub Personal Access Token {hasExistingPat ? "(Optional - already configured)" : "(Required)"}
                 </Label>
                 <p className="text-gray-600 text-sm mt-2 mb-3">
@@ -217,9 +216,8 @@ export default function SetupPage() {
               <div>
                 <Label
                   htmlFor="discordWebhook"
-                  className="text-black text-lg font-bold flex items-center gap-2"
+                  className="text-black text-lg font-bold"
                 >
-                  <span>💬</span>
                   Discord Webhook URL (Optional)
                 </Label>
                 <p className="text-gray-600 text-sm mt-2 mb-3">
@@ -249,9 +247,8 @@ export default function SetupPage() {
               <div>
                 <Label
                   htmlFor="telegramToken"
-                  className="text-black text-lg font-bold flex items-center gap-2"
+                  className="text-black text-lg font-bold"
                 >
-                  <span>✈️</span>
                   Telegram Bot Token (Optional)
                 </Label>
                 <p className="text-gray-600 text-sm mt-2 mb-3">
