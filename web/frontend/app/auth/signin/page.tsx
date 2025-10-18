@@ -20,8 +20,8 @@ export default function SignInPage() {
   };
 
   return (
-    <main className="h-screen flex bg-gradient-to-br from-[#054980] via-[#043a66] to-[#032a4d]">
-      {/* Left: Decorative Side - TODO: Replace with Spline 3D animation */}
+    <main className="h-screen flex">
+      {/* Left: Spline 3D Scene - White Background */}
       {/* 
         TODO: Integrate Spline 3D Scene
         - Use @splinetool/react-spline/next component
@@ -29,11 +29,11 @@ export default function SignInPage() {
         - Add proper error handling and loading states
         - Consider lazy loading with dynamic import
       */}
-      <div className="w-1/2 relative hidden md:flex items-center justify-center overflow-hidden">
+      <div className="w-1/2 relative hidden md:flex items-center justify-center overflow-hidden bg-white">
         {/* MOCK: Temporary placeholder - will be replaced with 3D scene */}
-        <div className="text-center text-white/80">
+        <div className="text-center text-gray-800">
           <svg
-            className="w-32 h-32 mx-auto mb-6 opacity-60"
+            className="w-32 h-32 mx-auto mb-6 opacity-40"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -45,15 +45,15 @@ export default function SignInPage() {
               d="M13 10V3L4 14h7v7l9-11h-7z"
             />
           </svg>
-          <h2 className="text-3xl font-bold mb-2">Never Miss a Day</h2>
-          <p className="text-white/60 text-lg">
+          <h2 className="text-3xl font-bold mb-2 text-gray-900">Never Miss a Day</h2>
+          <p className="text-gray-600 text-lg">
             Keep your GitHub streak alive with automated reminders
           </p>
         </div>
       </div>
 
-      {/* Right: Sign In Form */}
-      <div className="w-full md:w-1/2 flex items-center justify-center p-8">
+      {/* Right: Sign In Form - Black Background */}
+      <div className="w-full md:w-1/2 flex items-center justify-center p-8 bg-black">
         <div className="max-w-md w-full space-y-8">
           {/* Header */}
           <div className="text-center">
@@ -70,7 +70,7 @@ export default function SignInPage() {
             <Button
               onClick={handleSignIn}
               disabled={!agreedToTerms || isLoading}
-              className="w-full h-12 text-lg bg-[#054980] text-white hover:bg-[#043a66] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="w-full h-12 text-lg bg-white text-black hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               {isLoading ? (
                 <span className="flex items-center gap-2">
@@ -114,7 +114,7 @@ export default function SignInPage() {
                 onCheckedChange={(checked: boolean) =>
                   setAgreedToTerms(checked === true)
                 }
-                className="mt-1 border-white/40 bg-white/10 data-[state=checked]:bg-white data-[state=checked]:border-white data-[state=checked]:text-[#054980]"
+                className="mt-1 border-white/60 bg-white/20 data-[state=checked]:bg-white data-[state=checked]:border-white data-[state=checked]:text-black"
               />
               <label
                 htmlFor="terms"
