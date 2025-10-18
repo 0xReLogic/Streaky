@@ -97,9 +97,9 @@ export default function SetupPage() {
       return false;
     }
 
-    // At least one field must be filled
-    if (!githubPat && !discordWebhook && !telegramToken) {
-      toast.error("Please fill at least one field to update");
+    // At least one notification channel must be configured
+    if (!discordWebhook && !telegramToken) {
+      toast.error("Please configure at least one notification channel (Discord or Telegram)");
       return false;
     }
 
@@ -218,10 +218,10 @@ export default function SetupPage() {
                   htmlFor="discordWebhook"
                   className="text-black text-lg font-bold"
                 >
-                  Discord Webhook URL (Optional)
+                  Discord Webhook URL
                 </Label>
                 <p className="text-gray-600 text-sm mt-2 mb-3">
-                  Get notifications in your Discord server.{" "}
+                  Configure at least one notification channel (Discord or Telegram). Get notifications in your Discord server.{" "}
                   <a
                     href="https://support.discord.com/hc/en-us/articles/228383668-Intro-to-Webhooks"
                     target="_blank"
@@ -249,7 +249,7 @@ export default function SetupPage() {
                   htmlFor="telegramToken"
                   className="text-black text-lg font-bold"
                 >
-                  Telegram Bot Token (Optional)
+                  Telegram Bot Token
                 </Label>
                 <p className="text-gray-600 text-sm mt-2 mb-3">
                   Get notifications via Telegram.{" "}
@@ -277,7 +277,7 @@ export default function SetupPage() {
                   htmlFor="telegramChatId"
                   className="text-black text-base font-semibold"
                 >
-                  Telegram Chat ID (Optional)
+                  Telegram Chat ID
                 </Label>
                 <p className="text-gray-600 text-sm mt-2 mb-3">
                   Your Telegram chat ID.{" "}
