@@ -9,7 +9,9 @@ import { corsMiddleware } from './middleware/cors';
 import { RateLimiters } from './middleware/rate-limit';
 import { performanceMiddleware } from './lib/monitoring';
 import userRoutes from './routes/user';
+import cronRoutes from './routes/cron';
 import { checkAllUsersStreaks } from './cron/streak-checker';
+import { initializeBatch, cleanupOldBatches } from './services/queue';
 
 const app = new Hono<{ Bindings: Env }>();
 
@@ -78,6 +80,9 @@ app.post('/api/cron/trigger', async (c) => {
 // Mount user routes
 app.route('/api/user', userRoutes);
 
+// Mount cron routes (distributed queue processing)
+app.route('/api/cron', cronRoutes);
+
 // 404 handler
 app.notFound((c) => {
 	return c.json({ error: 'Not found' }, 404);
@@ -103,11 +108,57 @@ export default {
 	async scheduled(event: ScheduledEvent, env: Env, ctx: ExecutionContext): Promise<void> {
 		console.log('[Scheduled] Cron trigger fired:', event.cron);
 
-		// Use waitUntil to ensure the async operation completes
-		ctx.waitUntil(
-			checkAllUsersStreaks(env).catch((error) => {
-				console.error('[Scheduled] Error in cron job:', error);
-			})
-		);
+		try {
+			// Query active users with GitHub PAT configured
+			const usersResult = await env.DB.prepare(
+				`SELECT id FROM users WHERE is_active = 1 AND github_pat IS NOT NULL`
+			).all();
+
+			const userIds = (usersResult.results || []).map((row: any) => row.id as string);
+
+			if (userIds.length === 0) {
+				console.log('[Scheduled] No active users to process');
+				return;
+			}
+
+			console.log(`[Scheduled] Initializing batch for ${userIds.length} users`);
+
+			// Initialize batch in queue
+			const batchId = await initializeBatch(env, userIds);
+
+			console.log(`[Scheduled] Batch ${batchId} initialized with ${userIds.length} users`);
+
+			// Cleanup old batches (7+ days)
+			ctx.waitUntil(
+				cleanupOldBatches(env, 7)
+					.then((deleted) => {
+						if (deleted > 0) {
+							console.log(`[Scheduled] Cleaned up ${deleted} old queue items`);
+						}
+					})
+					.catch((error) => {
+						console.error('[Scheduled] Error cleaning up old batches:', error);
+					})
+			);
+
+			// Trigger dispatcher to start processing
+			const workerUrl = env.VPS_URL ? new URL(env.VPS_URL).origin : 'https://streaky.0xrelogic.workers.dev';
+			ctx.waitUntil(
+				fetch(`${workerUrl}/api/cron/dispatch`, {
+					method: 'GET',
+					headers: {
+						'X-Cron-Secret': env.SERVER_SECRET,
+					},
+				})
+					.then((response) => {
+						console.log(`[Scheduled] Dispatcher triggered: ${response.status}`);
+					})
+					.catch((error) => {
+						console.error('[Scheduled] Error triggering dispatcher:', error);
+					})
+			);
+		} catch (error) {
+			console.error('[Scheduled] Error in cron job:', error);
+		}
 	},
 };
