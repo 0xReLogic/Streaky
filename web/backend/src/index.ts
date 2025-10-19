@@ -60,8 +60,7 @@ app.get('/', (c) => {
 });
 
 // Manual cron trigger for testing (protected with secret)
-// NOTE: Uses old sequential logic (checkAllUsersStreaks) for backward compatibility
-// For distributed processing, the scheduled() handler below uses the new queue system
+// Updated to use NEW distributed queue system for testing
 app.post('/api/cron/trigger', async (c) => {
 	const secret = c.req.header('X-Cron-Secret');
 
@@ -70,13 +69,41 @@ app.post('/api/cron/trigger', async (c) => {
 	}
 
 	try {
-		// Uses DEPRECATED sequential processing (streak-checker.ts)
-		// TODO: Update to use distributed queue pattern after stability confirmed
-		await checkAllUsersStreaks(c.env);
-		return c.json({ success: true, message: 'Cron job triggered successfully (sequential mode)' });
+		// Query active users
+		const usersResult = await c.env.DB.prepare(
+			`SELECT id FROM users WHERE is_active = 1 AND github_pat IS NOT NULL`
+		).all();
+
+		const userIds = (usersResult.results || []).map((row: any) => row.id as string);
+
+		if (userIds.length === 0) {
+			return c.json({ success: true, message: 'No active users to process' });
+		}
+
+		// Initialize batch
+		const batchId = await initializeBatch(c.env, userIds);
+		console.log(`[Manual] Batch ${batchId} initialized with ${userIds.length} users`);
+
+		// Process batch directly (same as scheduled() handler)
+		c.executionCtx.waitUntil(
+			processQueueBatch(c.env, batchId)
+				.then(() => {
+					console.log(`[Manual] Batch ${batchId} processing complete`);
+				})
+				.catch((error) => {
+					console.error(`[Manual] Batch ${batchId} processing failed:`, error);
+				})
+		);
+
+		return c.json({ 
+			success: true, 
+			message: `Batch ${batchId} created with ${userIds.length} users`,
+			batchId,
+			users: userIds.length
+		});
 	} catch (error) {
 		// Log detailed error server-side
-		console.error('[Cron] Manual trigger failed:', error);
+		console.error('[Manual] Trigger failed:', error);
 		// Return generic error to client (don't leak details)
 		return c.json({ error: 'Cron job failed' }, 500);
 	}
