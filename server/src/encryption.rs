@@ -24,8 +24,9 @@ impl EncryptionService {
     }
 
     pub fn decrypt(&self, encrypted_data: &str) -> Result<String, Box<dyn std::error::Error>> {
-        // Decode from base64
-        let encrypted_bytes = general_purpose::STANDARD.decode(encrypted_data)?;
+        // Decode from base64 (try STANDARD first, fallback to URL_SAFE if needed)
+        let encrypted_bytes = general_purpose::STANDARD.decode(encrypted_data)
+            .or_else(|_| general_purpose::URL_SAFE.decode(encrypted_data))?;
 
         // Extract IV (first 12 bytes) and ciphertext (rest)
         if encrypted_bytes.len() < 12 {
