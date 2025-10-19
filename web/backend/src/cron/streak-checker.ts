@@ -1,7 +1,30 @@
 /**
- * Streak Checker Cron Job
+ * Streak Checker Cron Job (DEPRECATED)
+ * 
+ * ⚠️ DEPRECATED: This sequential processing approach has been replaced by
+ * distributed queue pattern (process-single-user.ts + routes/cron.ts)
+ * 
+ * Status:
+ * - Still used by manual trigger endpoint for testing/emergency
+ * - Kept as backup/fallback mechanism
+ * - Will be removed after 2 weeks of stable distributed system
+ * 
+ * New System:
+ * - See: src/cron/process-single-user.ts (single user logic)
+ * - See: src/routes/cron.ts (dispatcher + endpoints)
+ * - See: src/services/queue.ts (D1 queue management)
+ * 
+ * Migration Date: 2025-10-19
+ * Removal Target: 2025-11-02 (after stability confirmed)
+ * 
+ * Original Purpose:
  * Runs daily at 8 PM UTC to check all users' GitHub contributions
  * Sends notifications if no contributions made today
+ * 
+ * Limitation:
+ * - Sequential processing (TLE risk with 200+ users)
+ * - CPU time: 1000ms+ for 100 users (approaching limits)
+ * - No fault isolation (1 user fails = all fail)
  */
 
 import { Env } from '../types/env';

@@ -17,7 +17,7 @@ export default function TermsOfService() {
         {/* Title */}
         <h1 className="text-4xl font-bold mb-4">Terms of Service</h1>
         <p className="text-white/60 mb-12">
-          Last Updated: October 18, 2025
+          Last Updated: October 19, 2025
         </p>
 
         {/* Content */}
@@ -156,6 +156,9 @@ export default function TermsOfService() {
               </li>
               <li>
                 <strong>Vercel:</strong> For frontend hosting
+              </li>
+              <li>
+                <strong>Koyeb:</strong> For notification proxy (VPS hosting)
               </li>
             </ul>
             <p className="mt-4">

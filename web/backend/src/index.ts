@@ -9,7 +9,9 @@ import { corsMiddleware } from './middleware/cors';
 import { RateLimiters } from './middleware/rate-limit';
 import { performanceMiddleware } from './lib/monitoring';
 import userRoutes from './routes/user';
+import cronRoutes from './routes/cron';
 import { checkAllUsersStreaks } from './cron/streak-checker';
+import { initializeBatch, cleanupOldBatches, getNextPendingUser } from './services/queue';
 
 const app = new Hono<{ Bindings: Env }>();
 
@@ -57,6 +59,7 @@ app.get('/', (c) => {
 });
 
 // Manual cron trigger for testing (protected with secret)
+// Updated to use NEW distributed queue system for testing
 app.post('/api/cron/trigger', async (c) => {
 	const secret = c.req.header('X-Cron-Secret');
 
@@ -65,11 +68,57 @@ app.post('/api/cron/trigger', async (c) => {
 	}
 
 	try {
-		await checkAllUsersStreaks(c.env);
-		return c.json({ success: true, message: 'Cron job triggered successfully' });
+		// Query active users
+		const usersResult = await c.env.DB.prepare(
+			`SELECT id FROM users WHERE is_active = 1 AND github_pat IS NOT NULL`
+		).all();
+
+		const userIds = (usersResult.results || []).map((row: any) => row.id as string);
+
+		if (userIds.length === 0) {
+			return c.json({ success: true, message: 'No active users to process' });
+		}
+
+		// Initialize batch
+		const batchId = await initializeBatch(c.env, userIds);
+		console.log(`[Manual] Batch ${batchId} initialized with ${userIds.length} users`);
+
+		// Trigger distributed processing via Service Bindings
+		// Each fetch = SEPARATE Worker instance! ✅
+		for (let i = 0; i < userIds.length; i++) {
+			const queueItem = await getNextPendingUser(c.env);
+			if (!queueItem) break;
+
+			c.executionCtx.waitUntil(
+				c.env.SELF.fetch('http://internal/api/cron/process-user', {
+					method: 'POST',
+					headers: {
+						'X-Cron-Secret': c.env.SERVER_SECRET,
+						'Content-Type': 'application/json',
+					},
+					body: JSON.stringify({
+						queueId: queueItem.id,
+						userId: queueItem.user_id,
+					}),
+				})
+					.then((res) => {
+						console.log(`[Manual] User ${queueItem.user_id} dispatched: ${res.status}`);
+					})
+					.catch((error: Error) => {
+						console.error(`[Manual] User ${queueItem.user_id} dispatch failed:`, error);
+					})
+			);
+		}
+
+		return c.json({ 
+			success: true, 
+			message: `Batch ${batchId} created, ${userIds.length} users dispatched via Service Bindings`,
+			batchId,
+			users: userIds.length
+		});
 	} catch (error) {
 		// Log detailed error server-side
-		console.error('[Cron] Manual trigger failed:', error);
+		console.error('[Manual] Trigger failed:', error);
 		// Return generic error to client (don't leak details)
 		return c.json({ error: 'Cron job failed' }, 500);
 	}
@@ -77,6 +126,9 @@ app.post('/api/cron/trigger', async (c) => {
 
 // Mount user routes
 app.route('/api/user', userRoutes);
+
+// Mount cron routes (distributed queue processing)
+app.route('/api/cron', cronRoutes);
 
 // 404 handler
 app.notFound((c) => {
@@ -103,11 +155,74 @@ export default {
 	async scheduled(event: ScheduledEvent, env: Env, ctx: ExecutionContext): Promise<void> {
 		console.log('[Scheduled] Cron trigger fired:', event.cron);
 
-		// Use waitUntil to ensure the async operation completes
-		ctx.waitUntil(
-			checkAllUsersStreaks(env).catch((error) => {
-				console.error('[Scheduled] Error in cron job:', error);
-			})
-		);
+		try {
+			// Query active users with GitHub PAT configured
+			const usersResult = await env.DB.prepare(
+				`SELECT id FROM users WHERE is_active = 1 AND github_pat IS NOT NULL`
+			).all();
+
+			const userIds = (usersResult.results || []).map((row: any) => row.id as string);
+
+			if (userIds.length === 0) {
+				console.log('[Scheduled] No active users to process');
+				return;
+			}
+
+			console.log(`[Scheduled] Initializing batch for ${userIds.length} users`);
+
+			// Initialize batch in queue
+			const batchId = await initializeBatch(env, userIds);
+
+			console.log(`[Scheduled] Batch ${batchId} initialized with ${userIds.length} users`);
+
+			// Cleanup old batches (7+ days)
+			ctx.waitUntil(
+				cleanupOldBatches(env, 7)
+					.then((deleted) => {
+						if (deleted > 0) {
+							console.log(`[Scheduled] Cleaned up ${deleted} old queue items`);
+						}
+					})
+					.catch((error: Error) => {
+						console.error('[Scheduled] Error cleaning up old batches:', error);
+					})
+			);
+
+			// Trigger distributed processing via Service Bindings (env.SELF)
+			// Each fetch = SEPARATE Worker instance! TRUE distributed! ✅
+			console.log(`[Scheduled] Dispatching ${userIds.length} users via Service Bindings`);
+			
+			for (let i = 0; i < userIds.length; i++) {
+				const queueItem = await getNextPendingUser(env);
+				if (!queueItem) {
+					console.log(`[Scheduled] No more pending users in queue`);
+					break;
+				}
+
+				ctx.waitUntil(
+					env.SELF.fetch('http://internal/api/cron/process-user', {
+						method: 'POST',
+						headers: {
+							'X-Cron-Secret': env.SERVER_SECRET,
+							'Content-Type': 'application/json',
+						},
+						body: JSON.stringify({
+							queueId: queueItem.id,
+							userId: queueItem.user_id,
+						}),
+					})
+						.then((res) => {
+							console.log(`[Scheduled] User ${queueItem.user_id} dispatched: ${res.status}`);
+						})
+						.catch((error: Error) => {
+							console.error(`[Scheduled] User ${queueItem.user_id} dispatch failed:`, error);
+						})
+				);
+			}
+			
+			console.log(`[Scheduled] All ${userIds.length} users dispatched for batch ${batchId}`);
+		} catch (error) {
+			console.error('[Scheduled] Error in cron job:', error);
+		}
 	},
 };

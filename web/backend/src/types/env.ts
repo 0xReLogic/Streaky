@@ -10,6 +10,9 @@ export interface Env {
   // Analytics Engine binding
   ANALYTICS: AnalyticsEngineDataset;
 
+  // Service Binding - Self-reference for distributed processing
+  SELF: Fetcher;
+
   // Environment variables (secrets)
   ENCRYPTION_KEY: string;
   NEXTAUTH_SECRET: string;

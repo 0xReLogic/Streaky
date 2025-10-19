@@ -63,7 +63,7 @@ export class NotificationServiceImpl implements NotificationService {
 			};
 
 			const controller = new AbortController();
-			const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
+			const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout (handles Koyeb cold start)
 
 			const response = await fetch(`${vpsUrl}/send-notification`, {
 				method: 'POST',
@@ -91,7 +91,7 @@ export class NotificationServiceImpl implements NotificationService {
 			if (error instanceof Error && error.name === 'AbortError') {
 				return {
 					success: false,
-					error: 'VPS proxy timeout (5s)',
+					error: 'VPS proxy timeout (15s) - likely cold start',
 				};
 			}
 			return {
@@ -133,7 +133,7 @@ export class NotificationServiceImpl implements NotificationService {
 			};
 
 			const controller = new AbortController();
-			const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
+			const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout (handles Koyeb cold start)
 
 			const response = await fetch(`${vpsUrl}/send-notification`, {
 				method: 'POST',
@@ -161,7 +161,7 @@ export class NotificationServiceImpl implements NotificationService {
 			if (error instanceof Error && error.name === 'AbortError') {
 				return {
 					success: false,
-					error: 'VPS proxy timeout (5s)',
+					error: 'VPS proxy timeout (15s) - likely cold start',
 				};
 			}
 			return {
