@@ -59,6 +59,8 @@ app.get('/', (c) => {
 });
 
 // Manual cron trigger for testing (protected with secret)
+// NOTE: Uses old sequential logic (checkAllUsersStreaks) for backward compatibility
+// For distributed processing, the scheduled() handler below uses the new queue system
 app.post('/api/cron/trigger', async (c) => {
 	const secret = c.req.header('X-Cron-Secret');
 
@@ -67,8 +69,10 @@ app.post('/api/cron/trigger', async (c) => {
 	}
 
 	try {
+		// Uses DEPRECATED sequential processing (streak-checker.ts)
+		// TODO: Update to use distributed queue pattern after stability confirmed
 		await checkAllUsersStreaks(c.env);
-		return c.json({ success: true, message: 'Cron job triggered successfully' });
+		return c.json({ success: true, message: 'Cron job triggered successfully (sequential mode)' });
 	} catch (error) {
 		// Log detailed error server-side
 		console.error('[Cron] Manual trigger failed:', error);
