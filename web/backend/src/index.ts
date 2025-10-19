@@ -11,8 +11,7 @@ import { performanceMiddleware } from './lib/monitoring';
 import userRoutes from './routes/user';
 import cronRoutes from './routes/cron';
 import { checkAllUsersStreaks } from './cron/streak-checker';
-import { initializeBatch, cleanupOldBatches } from './services/queue';
-import { processQueueBatch } from './cron/queue-processor';
+import { initializeBatch, cleanupOldBatches, getNextPendingUser } from './services/queue';
 
 const app = new Hono<{ Bindings: Env }>();
 
@@ -84,20 +83,36 @@ app.post('/api/cron/trigger', async (c) => {
 		const batchId = await initializeBatch(c.env, userIds);
 		console.log(`[Manual] Batch ${batchId} initialized with ${userIds.length} users`);
 
-		// Process batch directly (same as scheduled() handler)
-		c.executionCtx.waitUntil(
-			processQueueBatch(c.env, batchId)
-				.then(() => {
-					console.log(`[Manual] Batch ${batchId} processing complete`);
+		// Trigger distributed processing via Service Bindings
+		// Each fetch = SEPARATE Worker instance! ✅
+		for (let i = 0; i < userIds.length; i++) {
+			const queueItem = await getNextPendingUser(c.env);
+			if (!queueItem) break;
+
+			c.executionCtx.waitUntil(
+				c.env.SELF.fetch('http://internal/api/cron/process-user', {
+					method: 'POST',
+					headers: {
+						'X-Cron-Secret': c.env.SERVER_SECRET,
+						'Content-Type': 'application/json',
+					},
+					body: JSON.stringify({
+						queueId: queueItem.id,
+						userId: queueItem.user_id,
+					}),
 				})
-				.catch((error) => {
-					console.error(`[Manual] Batch ${batchId} processing failed:`, error);
-				})
-		);
+					.then((res) => {
+						console.log(`[Manual] User ${queueItem.user_id} dispatched: ${res.status}`);
+					})
+					.catch((error: Error) => {
+						console.error(`[Manual] User ${queueItem.user_id} dispatch failed:`, error);
+					})
+			);
+		}
 
 		return c.json({ 
 			success: true, 
-			message: `Batch ${batchId} created with ${userIds.length} users`,
+			message: `Batch ${batchId} created, ${userIds.length} users dispatched via Service Bindings`,
 			batchId,
 			users: userIds.length
 		});
@@ -168,23 +183,44 @@ export default {
 							console.log(`[Scheduled] Cleaned up ${deleted} old queue items`);
 						}
 					})
-					.catch((error) => {
+					.catch((error: Error) => {
 						console.error('[Scheduled] Error cleaning up old batches:', error);
 					})
 			);
 
-			// Process batch directly (no HTTP self-fetch!)
-			// Fix: scheduled() context ≠ HTTP context, direct call avoids 404
-			console.log(`[Scheduled] Starting queue processor for batch ${batchId}`);
-			ctx.waitUntil(
-				processQueueBatch(env, batchId)
-					.then(() => {
-						console.log(`[Scheduled] Queue processor completed for batch ${batchId}`);
+			// Trigger distributed processing via Service Bindings (env.SELF)
+			// Each fetch = SEPARATE Worker instance! TRUE distributed! ✅
+			console.log(`[Scheduled] Dispatching ${userIds.length} users via Service Bindings`);
+			
+			for (let i = 0; i < userIds.length; i++) {
+				const queueItem = await getNextPendingUser(env);
+				if (!queueItem) {
+					console.log(`[Scheduled] No more pending users in queue`);
+					break;
+				}
+
+				ctx.waitUntil(
+					env.SELF.fetch('http://internal/api/cron/process-user', {
+						method: 'POST',
+						headers: {
+							'X-Cron-Secret': env.SERVER_SECRET,
+							'Content-Type': 'application/json',
+						},
+						body: JSON.stringify({
+							queueId: queueItem.id,
+							userId: queueItem.user_id,
+						}),
 					})
-					.catch((error) => {
-						console.error(`[Scheduled] Queue processor failed for batch ${batchId}:`, error);
-					})
-			);
+						.then((res) => {
+							console.log(`[Scheduled] User ${queueItem.user_id} dispatched: ${res.status}`);
+						})
+						.catch((error: Error) => {
+							console.error(`[Scheduled] User ${queueItem.user_id} dispatch failed:`, error);
+						})
+				);
+			}
+			
+			console.log(`[Scheduled] All ${userIds.length} users dispatched for batch ${batchId}`);
 		} catch (error) {
 			console.error('[Scheduled] Error in cron job:', error);
 		}
