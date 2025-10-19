@@ -12,6 +12,7 @@ import userRoutes from './routes/user';
 import cronRoutes from './routes/cron';
 import { checkAllUsersStreaks } from './cron/streak-checker';
 import { initializeBatch, cleanupOldBatches } from './services/queue';
+import { processQueueBatch } from './cron/queue-processor';
 
 const app = new Hono<{ Bindings: Env }>();
 
@@ -145,21 +146,16 @@ export default {
 					})
 			);
 
-			// Trigger dispatcher to start processing
-			// Use production worker URL (not VPS_URL which is Rust proxy!)
-			const workerUrl = 'https://streaky.relogic.workers.dev';
+			// Process batch directly (no HTTP self-fetch!)
+			// Fix: scheduled() context ≠ HTTP context, direct call avoids 404
+			console.log(`[Scheduled] Starting queue processor for batch ${batchId}`);
 			ctx.waitUntil(
-				fetch(`${workerUrl}/api/cron/dispatch`, {
-					method: 'GET',
-					headers: {
-						'X-Cron-Secret': env.SERVER_SECRET,
-					},
-				})
-					.then((response) => {
-						console.log(`[Scheduled] Dispatcher triggered: ${response.status}`);
+				processQueueBatch(env, batchId)
+					.then(() => {
+						console.log(`[Scheduled] Queue processor completed for batch ${batchId}`);
 					})
 					.catch((error) => {
-						console.error('[Scheduled] Error triggering dispatcher:', error);
+						console.error(`[Scheduled] Queue processor failed for batch ${batchId}:`, error);
 					})
 			);
 		} catch (error) {
