@@ -68,49 +68,6 @@ We welcome contributions! Check out our [Contributing Guide](./CONTRIBUTING.md) 
 
 ---
 
-## Architecture
-
-Streaky uses a hybrid cloud architecture to ensure reliable notification delivery:
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│                    Cloudflare Cron                          │
-│                    (Daily at 8 PM UTC)                      │
-└────────────────────────┬────────────────────────────────────┘
-                         │
-                         ▼
-┌─────────────────────────────────────────────────────────────┐
-│              Cloudflare Worker (Hono)                       │
-│  • Check D1 database for active users                      │
-│  • Fetch GitHub contributions via API                      │
-│  • Prepare notification messages                            │
-│  • Send encrypted data to Rust VPS                         │
-└────────────────────────┬────────────────────────────────────┘
-                         │
-                         │ HTTPS + Auth Header
-                         │ (Data still encrypted)
-                         ▼
-┌─────────────────────────────────────────────────────────────┐
-│              Rust VPS on Koyeb (Axum)                       │
-│  • Receive encrypted credentials                            │
-│  • Decrypt with shared encryption key                       │
-│  • Send to Discord/Telegram APIs                           │
-│  • Return delivery status                                   │
-└────────────────────────┬────────────────────────────────────┘
-                         │
-                         ▼
-┌─────────────────────────────────────────────────────────────┐
-│              User's Discord/Telegram                        │
-│  • Receive streak notifications                             │
-└─────────────────────────────────────────────────────────────┘
-```
-
-**Why Rust VPS?**
-
-Cloudflare Workers share IP pools that are often blocked by Discord/Telegram APIs (Error 429). Our Rust VPS on Koyeb provides a clean, dedicated IP for reliable notification delivery while maintaining end-to-end encryption.
-
----
-
 ## Project Structure
 
 ```
@@ -134,6 +91,7 @@ streaky/
 ## Tech Stack
 
 **Frontend:**
+
 - Next.js 15 (React 19, App Router)
 - TypeScript
 - Tailwind CSS
@@ -142,18 +100,20 @@ streaky/
 - NextAuth.js (OAuth)
 
 **Backend API:**
+
 - Cloudflare Workers (Hono framework)
 - Cloudflare D1 (SQLite database)
 - Analytics Engine (SQL-queryable metrics)
 - TypeScript
 
 **Notification Proxy:**
+
 - Rust (Axum web framework)
 - Tokio (async runtime)
 - AES-256-GCM encryption
-- Deployed on Koyeb VPS
 
 **Security:**
+
 - JWT authentication with signature verification
 - AES-256-GCM encryption for all sensitive credentials
 - End-to-end encryption (Worker → Rust VPS)
