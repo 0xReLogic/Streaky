@@ -25,12 +25,13 @@ dataset = "streaky_metrics"
 crons = ["0 20 * * *"]
 
 # Environment Variables (non-sensitive)
-# [vars]
-# ENVIRONMENT = "production"
+[vars]
+VPS_URL = "http://localhost:3000" # Change to production URL after deployment
 
 # Secrets (use: wrangler secret put <KEY>)
 # - ENCRYPTION_KEY (for encrypting Discord/Telegram credentials)
 # - NEXTAUTH_SECRET (must match Vercel - for JWT verification fallback)
 # - SERVER_SECRET (shared secret for server-to-server auth - must match Vercel)
+# - VPS_SECRET (Rust VPS API secret - must match server .env)
 # - GITHUB_CLIENT_ID (optional, for future use)
 # - GITHUB_CLIENT_SECRET (optional, for future use)

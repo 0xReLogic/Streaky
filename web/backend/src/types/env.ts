@@ -14,6 +14,8 @@ export interface Env {
   ENCRYPTION_KEY: string;
   NEXTAUTH_SECRET: string;
   SERVER_SECRET: string; // Shared secret for server-to-server auth
+  VPS_URL: string; // Rust VPS notification proxy URL
+  VPS_SECRET: string; // Rust VPS API secret
 
   // Optional: KV namespace for caching (can be added later for better performance)
   // CACHE: KVNamespace;

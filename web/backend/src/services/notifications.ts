@@ -27,52 +27,61 @@ export class NotificationServiceImpl implements NotificationService {
 	 * @param message - Notification message data
 	 */
 	async sendDiscordNotification(webhookUrl: string, message: NotificationMessage): Promise<NotificationResult> {
+		// Call Rust VPS proxy instead of direct Discord API
 		try {
-			const embed = {
-				title: '⚠️ GitHub Streak Alert',
-				description: message.message,
-				color: 0xff6b6b, // Red color
-				fields: [
-					{
-						name: 'GitHub Username',
-						value: message.username,
-						inline: true,
-					},
-					{
-						name: 'Current Streak',
-						value: `${message.currentStreak} days`,
-						inline: true,
-					},
-				],
-				footer: {
-					text: 'Streaky - Never lose your GitHub streak',
-				},
-				timestamp: new Date().toISOString(),
-			};
+			const vpsUrl = this.env.VPS_URL;
+			const vpsSecret = this.env.VPS_SECRET;
+
+			if (!vpsUrl || !vpsSecret) {
+				return {
+					success: false,
+					error: 'VPS_URL or VPS_SECRET not configured',
+				};
+			}
 
 			const payload = {
-				embeds: [embed],
-				username: 'Streaky Bot',
+				type: 'discord',
+				encrypted_webhook: webhookUrl, // Already encrypted from D1
+				message: {
+					username: message.username,
+					current_streak: message.currentStreak,
+					contributions_today: message.contributionsToday,
+					message: message.message,
+				},
 			};
 
-			const response = await fetch(webhookUrl, {
+			const controller = new AbortController();
+			const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
+
+			const response = await fetch(`${vpsUrl}/send-notification`, {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json',
+					'X-API-Secret': vpsSecret,
 				},
 				body: JSON.stringify(payload),
+				signal: controller.signal,
 			});
+
+			clearTimeout(timeoutId);
 
 			if (!response.ok) {
 				const errorText = await response.text();
 				return {
 					success: false,
-					error: `Discord API error: ${response.status} ${errorText}`,
+					error: `VPS proxy error: ${response.status} ${errorText}`,
 				};
 			}
 
-			return { success: true };
+			const result = await response.json();
+			return result;
 		} catch (error) {
+			if (error instanceof Error && error.name === 'AbortError') {
+				return {
+					success: false,
+					error: 'VPS proxy timeout (5s)',
+				};
+			}
 			return {
 				success: false,
 				error: `Discord notification failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
@@ -87,44 +96,62 @@ export class NotificationServiceImpl implements NotificationService {
 	 * @param message - Notification message data
 	 */
 	async sendTelegramNotification(token: string, chatId: string, message: NotificationMessage): Promise<NotificationResult> {
+		// Call Rust VPS proxy instead of direct Telegram API
 		try {
-			const text = `
-⚠️ *GitHub Streak Alert*
+			const vpsUrl = this.env.VPS_URL;
+			const vpsSecret = this.env.VPS_SECRET;
 
-${message.message}
-
-👤 *GitHub Username:* ${message.username}
-🔥 *Current Streak:* ${message.currentStreak} days
-
-_Streaky - Never lose your GitHub streak_
-      `.trim();
-
-			const payload = {
-				chat_id: chatId,
-				text,
-				parse_mode: 'Markdown',
-			};
-
-			const telegramApiUrl = `https://api.telegram.org/bot${token}/sendMessage`;
-
-			const response = await fetch(telegramApiUrl, {
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json',
-				},
-				body: JSON.stringify(payload),
-			});
-
-			if (!response.ok) {
-				const errorData = await response.json();
+			if (!vpsUrl || !vpsSecret) {
 				return {
 					success: false,
-					error: `Telegram API error: ${response.status} ${JSON.stringify(errorData)}`,
+					error: 'VPS_URL or VPS_SECRET not configured',
 				};
 			}
 
-			return { success: true };
+			const payload = {
+				type: 'telegram',
+				encrypted_token: token, // Already encrypted from D1
+				encrypted_chat_id: chatId, // Already encrypted from D1
+				message: {
+					username: message.username,
+					current_streak: message.currentStreak,
+					contributions_today: message.contributionsToday,
+					message: message.message,
+				},
+			};
+
+			const controller = new AbortController();
+			const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
+
+			const response = await fetch(`${vpsUrl}/send-notification`, {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+					'X-API-Secret': vpsSecret,
+				},
+				body: JSON.stringify(payload),
+				signal: controller.signal,
+			});
+
+			clearTimeout(timeoutId);
+
+			if (!response.ok) {
+				const errorText = await response.text();
+				return {
+					success: false,
+					error: `VPS proxy error: ${response.status} ${errorText}`,
+				};
+			}
+
+			const result = await response.json();
+			return result;
 		} catch (error) {
+			if (error instanceof Error && error.name === 'AbortError') {
+				return {
+					success: false,
+					error: 'VPS proxy timeout (5s)',
+				};
+			}
 			return {
 				success: false,
 				error: `Telegram notification failed: ${error instanceof Error ? error.message : 'Unknown error'}`,

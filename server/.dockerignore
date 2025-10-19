@@ -1,0 +1,8 @@
+target/
+.env
+.env.local
+.git/
+.gitignore
+*.md
+test-*.json
+run.ps1

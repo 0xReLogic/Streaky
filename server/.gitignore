@@ -1,0 +1,24 @@
+# Rust
+/target/
+Cargo.lock
+
+# Environment
+.env
+.env.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Test files
+test-request.json
+
+# Scripts
+run.ps1
