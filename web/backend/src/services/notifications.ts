@@ -53,7 +53,7 @@ export class NotificationServiceImpl implements NotificationService {
 
 			const payload = {
 				type: 'discord',
-				encrypted_webhook: webhookUrl, // Already encrypted from D1
+				encrypted_webhook: webhookUrl.trim(), // Already encrypted from D1, trim whitespace
 				message: {
 					username: message.username,
 					current_streak: message.currentStreak,
@@ -122,8 +122,8 @@ export class NotificationServiceImpl implements NotificationService {
 
 			const payload = {
 				type: 'telegram',
-				encrypted_token: token, // Already encrypted from D1
-				encrypted_chat_id: chatId, // Already encrypted from D1
+				encrypted_token: token.trim(), // Already encrypted from D1, trim whitespace
+				encrypted_chat_id: chatId.trim(), // Already encrypted from D1, trim whitespace
 				message: {
 					username: message.username,
 					current_streak: message.currentStreak,
