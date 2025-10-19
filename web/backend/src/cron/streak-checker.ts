@@ -42,7 +42,7 @@ export async function checkAllUsersStreaks(env: Env): Promise<void> {
 
     // Initialize services
     const encryptionService = await createEncryptionService(env.ENCRYPTION_KEY);
-    const notificationService = createNotificationService();
+    const notificationService = createNotificationService(env);
 
     let checkedCount = 0;
     let notifiedCount = 0;

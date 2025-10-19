@@ -3,6 +3,12 @@
  * Handles sending notifications via Discord and Telegram
  */
 
+import { Env } from 'hono';
+
+import { Env } from 'hono';
+
+import { Env } from 'hono';
+
 export interface NotificationMessage {
 	username: string;
 	currentStreak: number;
@@ -21,6 +27,12 @@ export interface NotificationService {
 }
 
 export class NotificationServiceImpl implements NotificationService {
+	private env: Env;
+
+	constructor(env: Env) {
+		this.env = env;
+	}
+
 	/**
 	 * Send notification via Discord webhook
 	 * @param webhookUrl - Discord webhook URL
@@ -163,6 +175,6 @@ export class NotificationServiceImpl implements NotificationService {
 /**
  * Create notification service instance
  */
-export function createNotificationService(): NotificationService {
-	return new NotificationServiceImpl();
+export function createNotificationService(env: Env): NotificationService {
+	return new NotificationServiceImpl(env);
 }

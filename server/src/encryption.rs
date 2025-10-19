@@ -10,14 +10,16 @@ pub struct EncryptionService {
 
 impl EncryptionService {
     pub fn new(key: &str) -> Result<Self, Box<dyn std::error::Error>> {
-        // Convert key to 32 bytes for AES-256
-        let key_bytes = key.as_bytes();
-        if key_bytes.len() != 32 {
-            return Err("Encryption key must be exactly 32 bytes".into());
-        }
-
-        let key = key_bytes.try_into().map_err(|_| "Invalid key length")?;
-        let cipher = Aes256Gcm::new(key);
+        // Convert key to 32 bytes for AES-256 (take first 32 chars like Worker does)
+        let key_str = if key.len() >= 32 {
+            &key[0..32]
+        } else {
+            return Err("Encryption key must be at least 32 characters".into());
+        };
+        
+        let key_bytes = key_str.as_bytes();
+        let key_array: [u8; 32] = key_bytes.try_into().map_err(|_| "Invalid key length")?;
+        let cipher = Aes256Gcm::new(&key_array.into());
         Ok(Self { cipher })
     }
 

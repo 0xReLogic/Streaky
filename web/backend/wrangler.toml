@@ -26,7 +26,7 @@ crons = ["0 20 * * *"]
 
 # Environment Variables (non-sensitive)
 [vars]
-VPS_URL = "http://localhost:3000" # Change to production URL after deployment
+VPS_URL = "https://joyous-camala-allenarch-534de3c3.koyeb.app"
 
 # Secrets (use: wrangler secret put <KEY>)
 # - ENCRYPTION_KEY (for encrypting Discord/Telegram credentials)
