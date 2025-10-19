@@ -146,7 +146,8 @@ export default {
 			);
 
 			// Trigger dispatcher to start processing
-			const workerUrl = env.VPS_URL ? new URL(env.VPS_URL).origin : 'https://streaky.0xrelogic.workers.dev';
+			// Use production worker URL (not VPS_URL which is Rust proxy!)
+			const workerUrl = 'https://streaky.relogic.workers.dev';
 			ctx.waitUntil(
 				fetch(`${workerUrl}/api/cron/dispatch`, {
 					method: 'GET',

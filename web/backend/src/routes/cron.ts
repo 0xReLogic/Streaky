@@ -36,7 +36,7 @@ app.get('/dispatch', async (c) => {
 		// Mark as processing
 		await markProcessing(c.env, queueItem.id);
 
-		// Get worker URL for self-triggering
+		// Get worker URL for self-triggering (use request origin)
 		const origin = new URL(c.req.url).origin;
 
 		// Trigger processing for this user (async, don't wait)
@@ -57,6 +57,7 @@ app.get('/dispatch', async (c) => {
 		);
 
 		// Self-trigger next dispatch (async, don't wait)
+		// Important: Use same origin to ensure we call ourselves, not external service
 		c.executionCtx.waitUntil(
 			fetch(`${origin}/api/cron/dispatch`, {
 				method: 'GET',
