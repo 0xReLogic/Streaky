@@ -17,7 +17,7 @@ export default function PrivacyPolicy() {
         {/* Title */}
         <h1 className="text-4xl font-bold mb-4">Privacy Policy</h1>
         <p className="text-black/60 mb-12">
-          Last Updated: October 18, 2025
+          Last Updated: October 19, 2025
         </p>
 
         {/* Content */}
@@ -224,6 +224,20 @@ export default function PrivacyPolicy() {
               <li>
                 <strong>Telegram (Optional):</strong> If you provide a bot
                 token, we send notifications via Telegram API.
+              </li>
+              <li>
+                <strong>Koyeb:</strong> For encrypted notification relay
+                (Rust VPS proxy). Credentials are encrypted end-to-end before
+                being sent. Subject to{" "}
+                <a
+                  href="https://www.koyeb.com/privacy"
+                  className="text-blue-600 hover:underline"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Koyeb Privacy Policy
+                </a>
+                .
               </li>
             </ul>
 
