@@ -33,6 +33,7 @@ The easiest way to keep your streak alive:
 
 - **Zero setup required** - Sign in with GitHub and start monitoring
 - **Always running** - Cloud-based daily checks at 8 PM UTC
+- **Distributed architecture** - Scalable to 40000+ users with isolated processing
 - **Multi-platform notifications** - Discord and Telegram support
 - **Beautiful interface** - Modern design with 3D animations
 - **Enterprise-grade security** - JWT authentication, AES-256 encryption, secure key storage
@@ -103,6 +104,7 @@ streaky/
 
 - Cloudflare Workers (Hono framework)
 - Cloudflare D1 (SQLite database)
+- Service Bindings (distributed cron processing)
 - Analytics Engine (SQL-queryable metrics)
 - TypeScript
 
