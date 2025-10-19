@@ -66,14 +66,19 @@ export async function getNextPendingUser(env: Env): Promise<QueueItem | null> {
  * @param queueId - Queue item ID
  */
 export async function markProcessing(env: Env, queueId: string): Promise<void> {
-	await env.DB.prepare(
+	const result = await env.DB.prepare(
 		`UPDATE cron_queue
      SET status = 'processing',
          started_at = datetime('now')
-     WHERE id = ?`
+     WHERE id = ? AND status = 'pending'`
 	)
 		.bind(queueId)
 		.run();
+
+	// If no rows updated, item already processing/completed
+	if (!result.meta.changes || result.meta.changes === 0) {
+		throw new Error('Queue item already processing or completed');
+	}
 }
 
 /**

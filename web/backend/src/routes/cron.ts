@@ -103,6 +103,21 @@ app.post('/process-user', async (c) => {
 			return c.json({ error: 'Missing queueId or userId' }, 400);
 		}
 
+		// Mark as processing (idempotency: prevents duplicate execution)
+		try {
+			await markProcessing(c.env, queueId);
+		} catch (error) {
+			// Already processing or completed - skip duplicate
+			console.log(`[ProcessUser] Queue item ${queueId} already processed, skipping duplicate`);
+			return c.json({
+				success: true,
+				queueId,
+				userId,
+				skipped: true,
+				reason: 'Already processing or completed',
+			});
+		}
+
 		// Process user
 		try {
 			await processSingleUser(c.env, userId);
