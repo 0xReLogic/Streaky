@@ -12,6 +12,28 @@ export interface QueueItem {
 	batch_id: string;
 }
 
+/**
+ * Atomically claim the next pending user by setting status to 'processing'
+ * and returning the claimed row in a single statement to avoid races.
+ */
+export async function claimNextPendingUserAtomic(env: Env): Promise<QueueItem | null> {
+    const result = await env.DB.prepare(
+        `WITH next AS (
+            SELECT id FROM cron_queue
+            WHERE status = 'pending'
+            ORDER BY created_at ASC
+            LIMIT 1
+        )
+        UPDATE cron_queue
+        SET status = 'processing', started_at = datetime('now')
+        WHERE id IN (SELECT id FROM next)
+        RETURNING id, user_id, batch_id`
+    ).all<QueueItem>();
+
+    const row = (result.results || [])[0] as QueueItem | undefined;
+    return row ?? null;
+}
+
 export interface BatchProgress {
 	pending: number;
 	processing: number;
@@ -147,6 +169,39 @@ export async function getBatchProgress(env: Env, batchId: string): Promise<Batch
 	}
 
 	return progress;
+}
+
+export async function getQueueItemStatus(
+	env: Env,
+	queueId: string
+): Promise<'pending' | 'processing' | 'completed' | 'failed' | null> {
+	const row = await env.DB.prepare(
+		`SELECT status FROM cron_queue WHERE id = ?`
+	)
+		.bind(queueId)
+		.first<{ status: 'pending' | 'processing' | 'completed' | 'failed' }>();
+
+	return row?.status ?? null;
+}
+
+/**
+ * Requeue stale processing items older than N minutes
+ * @param env - Worker environment with D1 binding
+ * @param minutes - Threshold minutes (default: 10)
+ * @returns Number of requeued rows
+ */
+export async function requeueStaleProcessing(env: Env, minutes: number = 10): Promise<number> {
+	const result = await env.DB.prepare(
+		`UPDATE cron_queue
+     SET status = 'pending',
+         started_at = NULL
+     WHERE status = 'processing'
+       AND started_at < datetime('now', '-' || ? || ' minutes')`
+	)
+		.bind(minutes)
+		.run();
+
+	return result.meta.changes;
 }
 
 /**

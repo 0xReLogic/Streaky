@@ -32,7 +32,7 @@ We understand you're trusting us with sensitive credentials (GitHub PAT, Discord
 The easiest way to keep your streak alive:
 
 - **Zero setup required** - Sign in with GitHub and start monitoring
-- **Always running** - Cloud-based daily checks at 8 PM UTC
+- **Always running** - Cloud-based daily checks at 12:00 UTC
 - **Distributed architecture** - Scalable to 40000+ users with isolated processing
 - **Multi-platform notifications** - Discord and Telegram support
 - **Beautiful interface** - Modern design with 3D animations
@@ -107,6 +107,7 @@ streaky/
 - Service Bindings (distributed cron processing)
 - Analytics Engine (SQL-queryable metrics)
 - TypeScript
+
 
 **Notification Proxy:**
 

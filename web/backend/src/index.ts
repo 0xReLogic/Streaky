@@ -10,8 +10,7 @@ import { RateLimiters } from './middleware/rate-limit';
 import { performanceMiddleware } from './lib/monitoring';
 import userRoutes from './routes/user';
 import cronRoutes from './routes/cron';
-import { checkAllUsersStreaks } from './cron/streak-checker';
-import { initializeBatch, cleanupOldBatches, getNextPendingUser } from './services/queue';
+import { initializeBatch, cleanupOldBatches, claimNextPendingUserAtomic, requeueStaleProcessing } from './services/queue';
 
 const app = new Hono<{ Bindings: Env }>();
 
@@ -47,7 +46,8 @@ app.use('*', corsMiddleware);
 
 // Apply rate limiting
 app.use('/api/user/*', RateLimiters.api); // 60 req/min for user endpoints
-app.use('/api/cron/*', RateLimiters.strict); // 10 req/min for cron trigger
+// Apply strict rate limit ONLY to external trigger endpoint
+app.use('/api/cron/trigger', RateLimiters.strict);
 
 // Health check endpoint
 app.get('/', (c) => {
@@ -84,9 +84,9 @@ app.post('/api/cron/trigger', async (c) => {
 		console.log(`[Manual] Batch ${batchId} initialized with ${userIds.length} users`);
 
 		// Trigger distributed processing via Service Bindings
-		// Each fetch = SEPARATE Worker instance! ✅
+		// Each fetch = SEPARATE Worker instance! Atomic claim ✅
 		for (let i = 0; i < userIds.length; i++) {
-			const queueItem = await getNextPendingUser(c.env);
+			const queueItem = await claimNextPendingUserAtomic(c.env);
 			if (!queueItem) break;
 
 			c.executionCtx.waitUntil(
@@ -175,6 +175,19 @@ export default {
 
 			console.log(`[Scheduled] Batch ${batchId} initialized with ${userIds.length} users`);
 
+			// Reaper for stale processing items (10+ minutes)
+			ctx.waitUntil(
+				requeueStaleProcessing(env, 10)
+					.then((requeued) => {
+						if (requeued > 0) {
+							console.log(`[Scheduled] Requeued ${requeued} stale processing items`);
+						}
+					})
+					.catch((error: Error) => {
+						console.error('[Scheduled] Error requeuing stale items:', error);
+					})
+			);
+
 			// Cleanup old batches (7+ days)
 			ctx.waitUntil(
 				cleanupOldBatches(env, 7)
@@ -189,11 +202,11 @@ export default {
 			);
 
 			// Trigger distributed processing via Service Bindings (env.SELF)
-			// Each fetch = SEPARATE Worker instance! TRUE distributed! ✅
+			// Each fetch = SEPARATE Worker instance! Atomic claim ✅
 			console.log(`[Scheduled] Dispatching ${userIds.length} users via Service Bindings`);
 			
 			for (let i = 0; i < userIds.length; i++) {
-				const queueItem = await getNextPendingUser(env);
+				const queueItem = await claimNextPendingUserAtomic(env);
 				if (!queueItem) {
 					console.log(`[Scheduled] No more pending users in queue`);
 					break;

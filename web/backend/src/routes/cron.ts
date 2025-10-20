@@ -7,80 +7,12 @@
 
 import { Hono } from 'hono';
 import { Env } from '../types/env';
-import { getNextPendingUser, markProcessing, markCompleted, markFailed, getBatchProgress } from '../services/queue';
+import { markProcessing, markCompleted, markFailed, getBatchProgress, getQueueItemStatus } from '../services/queue';
 import { processSingleUser } from '../cron/process-single-user';
 
 const app = new Hono<{ Bindings: Env }>();
 
-/**
- * Dispatcher Endpoint
- * Self-triggering loop that processes queue one user at a time
- * GET /api/cron/dispatch
- */
-app.get('/dispatch', async (c) => {
-	// Auth check
-	const secret = c.req.header('X-Cron-Secret');
-	if (!c.env.SERVER_SECRET || secret !== c.env.SERVER_SECRET) {
-		return c.json({ error: 'Unauthorized' }, 401);
-	}
-
-	try {
-		// Get next pending user
-		const queueItem = await getNextPendingUser(c.env);
-
-		if (!queueItem) {
-			// Queue is empty
-			return c.json({ message: 'Queue empty - all users processed' }, 200);
-		}
-
-		// Mark as processing
-		await markProcessing(c.env, queueItem.id);
-
-		// Get worker URL for self-triggering (use request origin)
-		const origin = new URL(c.req.url).origin;
-
-		// Trigger processing for this user (async, don't wait)
-		c.executionCtx.waitUntil(
-			fetch(`${origin}/api/cron/process-user`, {
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json',
-					'X-Cron-Secret': c.env.SERVER_SECRET,
-				},
-				body: JSON.stringify({
-					queueId: queueItem.id,
-					userId: queueItem.user_id,
-				}),
-			}).catch((error) => {
-				console.error('[Dispatcher] Error triggering process-user:', error);
-			})
-		);
-
-		// Self-trigger next dispatch (async, don't wait)
-		// Important: Use same origin to ensure we call ourselves, not external service
-		c.executionCtx.waitUntil(
-			fetch(`${origin}/api/cron/dispatch`, {
-				method: 'GET',
-				headers: {
-					'X-Cron-Secret': c.env.SERVER_SECRET,
-				},
-			}).catch((error) => {
-				console.error('[Dispatcher] Error self-triggering:', error);
-			})
-		);
-
-		// Return immediately (don't block)
-		return c.json({
-			dispatched: true,
-			queueId: queueItem.id,
-			userId: queueItem.user_id,
-			batchId: queueItem.batch_id,
-		});
-	} catch (error) {
-		console.error('[Dispatcher] Error:', error);
-		return c.json({ error: 'Dispatcher failed', message: error instanceof Error ? error.message : 'Unknown error' }, 500);
-	}
-});
+// Removed deprecated /api/cron/dispatch endpoint (migrated to direct fan-out via Service Bindings)
 
 /**
  * Process User Endpoint
@@ -103,22 +35,27 @@ app.post('/process-user', async (c) => {
 			return c.json({ error: 'Missing queueId or userId' }, 400);
 		}
 
-		// Mark as processing (idempotency: prevents duplicate execution)
-		try {
-			await markProcessing(c.env, queueId);
-		} catch (error) {
-			// Already processing or completed - skip duplicate
-			console.log(`[ProcessUser] Queue item ${queueId} already processed, skipping duplicate`);
-			return c.json({
-				success: true,
-				queueId,
-				userId,
-				skipped: true,
-				reason: 'Already processing or completed',
-			});
+		// Idempotent reserve logic: proceed if already 'processing'
+		const status = await getQueueItemStatus(c.env, queueId);
+		if (status === 'completed') {
+			return c.json({ success: true, queueId, userId, skipped: true, reason: 'Already completed' });
+		}
+		if (status === 'failed') {
+			return c.json({ success: false, queueId, userId, skipped: true, reason: 'Already failed' });
+		}
+		if (status === 'pending') {
+			try {
+				await markProcessing(c.env, queueId);
+			} catch (e) {
+				// If another dispatcher reserved concurrently, re-check and proceed only if now processing
+				const s2 = await getQueueItemStatus(c.env, queueId);
+				if (s2 !== 'processing') {
+					return c.json({ success: true, queueId, userId, skipped: true, reason: 'Taken by another worker' });
+				}
+			}
 		}
 
-		// Process user
+		// Process user (status is 'processing' now)
 		try {
 			await processSingleUser(c.env, userId);
 

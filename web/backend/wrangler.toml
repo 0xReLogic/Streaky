@@ -20,9 +20,9 @@ database_id = "f746bca3-44f6-4163-becf-1aecaa2a02c2"
 binding = "ANALYTICS"
 dataset = "streaky_metrics"
 
-# Cron Triggers - Daily at 8 PM UTC (Production)
+# Cron Triggers - Daily at 12:00 UTC
 [triggers]
-crons = ["0 20 * * *"]
+crons = ["0 12 * * *"]
 
 # Service Bindings - Allow Worker to call itself for distributed processing
 [[services]]
