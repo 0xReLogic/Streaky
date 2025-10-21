@@ -1,4 +1,5 @@
 use reqwest::Client;
+use std::time::Duration;
 use serde::Serialize;
 use crate::discord::NotificationMessage;
 
@@ -15,9 +16,11 @@ pub struct TelegramService {
 
 impl TelegramService {
     pub fn new() -> Self {
-        Self {
-            client: Client::new(),
-        }
+        let client = Client::builder()
+            .timeout(Duration::from_secs(10))
+            .build()
+            .expect("Failed to build reqwest client");
+        Self { client }
     }
 
     pub async fn send_notification(

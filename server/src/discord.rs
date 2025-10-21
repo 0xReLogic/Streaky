@@ -1,4 +1,5 @@
 use reqwest::Client;
+use std::time::Duration;
 use serde::{Deserialize, Serialize};
 // use serde_json::json;
 
@@ -44,9 +45,11 @@ pub struct DiscordService {
 
 impl DiscordService {
     pub fn new() -> Self {
-        Self {
-            client: Client::new(),
-        }
+        let client = Client::builder()
+            .timeout(Duration::from_secs(10))
+            .build()
+            .expect("Failed to build reqwest client");
+        Self { client }
     }
 
     pub async fn send_notification(

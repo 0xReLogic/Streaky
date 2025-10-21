@@ -3,11 +3,7 @@
  * Handles sending notifications via Discord and Telegram
  */
 
-import { Env } from 'hono';
-
-import { Env } from 'hono';
-
-import { Env } from 'hono';
+import type { Env } from '../types/env';
 
 export interface NotificationMessage {
 	username: string;
@@ -85,7 +81,7 @@ export class NotificationServiceImpl implements NotificationService {
 				};
 			}
 
-			const result = await response.json();
+			const result = (await response.json()) as NotificationResult;
 			return result;
 		} catch (error) {
 			if (error instanceof Error && error.name === 'AbortError') {
@@ -155,7 +151,7 @@ export class NotificationServiceImpl implements NotificationService {
 				};
 			}
 
-			const result = await response.json();
+			const result = (await response.json()) as NotificationResult;
 			return result;
 		} catch (error) {
 			if (error instanceof Error && error.name === 'AbortError') {
