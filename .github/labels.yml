@@ -1,0 +1,145 @@
+# GitHub Labels Configuration
+# This file documents all labels used in the repository
+# You can sync these labels using: gh label sync -f .github/labels.yml
+
+# Type Labels
+- name: bug
+  description: Something isn't working
+  color: d73a4a
+
+- name: enhancement
+  description: New feature or request
+  color: a2eeef
+
+- name: question
+  description: Further information is requested
+  color: d876e3
+
+- name: documentation
+  description: Improvements or additions to documentation
+  color: 0075ca
+
+- name: refactor
+  description: Code refactoring
+  color: fbca04
+
+- name: performance
+  description: Performance improvements
+  color: ff6b6b
+
+- name: security
+  description: Security-related issues
+  color: ee0701
+
+- name: chore
+  description: Maintenance tasks
+  color: fef2c0
+
+- name: dependencies
+  description: Dependency updates
+  color: 0366d6
+
+- name: breaking change
+  description: Breaking changes that require migration
+  color: b60205
+
+# Component Labels
+- name: frontend
+  description: Next.js frontend
+  color: 61dafb
+
+- name: backend
+  description: Cloudflare Workers backend
+  color: f38020
+
+- name: server
+  description: Rust notification proxy
+  color: dea584
+
+- name: cli
+  description: Python CLI tool
+  color: 3776ab
+
+# Status Labels
+- name: needs-triage
+  description: Needs initial review and categorization
+  color: ededed
+
+- name: work in progress
+  description: Currently being worked on
+  color: fbca04
+
+- name: blocked
+  description: Blocked by another issue or external factor
+  color: b60205
+
+- name: ready for review
+  description: Ready for maintainer review
+  color: 0e8a16
+
+- name: stale
+  description: No recent activity
+  color: eeeeee
+
+# Priority Labels
+- name: priority: critical
+  description: Critical priority
+  color: b60205
+
+- name: priority: high
+  description: High priority
+  color: d93f0b
+
+- name: priority: medium
+  description: Medium priority
+  color: fbca04
+
+- name: priority: low
+  description: Low priority
+  color: 0e8a16
+
+# Size Labels (for PRs)
+- name: size: XS
+  description: Extra small PR (< 10 lines)
+  color: 3cbf00
+
+- name: size: S
+  description: Small PR (10-49 lines)
+  color: 5d9801
+
+- name: size: M
+  description: Medium PR (50-199 lines)
+  color: 7f7203
+
+- name: size: L
+  description: Large PR (200-499 lines)
+  color: a14c05
+
+- name: size: XL
+  description: Extra large PR (500+ lines)
+  color: b60205
+
+# Special Labels
+- name: good first issue
+  description: Good for newcomers
+  color: 7057ff
+
+- name: help wanted
+  description: Extra attention is needed
+  color: 008672
+
+- name: pinned
+  description: Pinned issue, won't be marked as stale
+  color: 0e8a16
+
+- name: duplicate
+  description: This issue or pull request already exists
+  color: cfd3d7
+
+- name: invalid
+  description: This doesn't seem right
+  color: e4e669
+
+- name: wontfix
+  description: This will not be worked on
+  color: ffffff

@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Security Vulnerability
+    url: https://github.com/0xReLogic/Streaky/security/advisories/new
+    about: Please report security vulnerabilities privately through GitHub Security Advisories
+  - name: Discussions
+    url: https://github.com/0xReLogic/Streaky/discussions
+    about: Ask questions and discuss ideas with the community

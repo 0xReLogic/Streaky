@@ -1,0 +1,213 @@
+name: Auto Label Issues and PRs
+
+on:
+  issues:
+    types: [opened, edited]
+  pull_request:
+    types: [opened, edited, synchronize]
+
+permissions:
+  issues: write
+  pull-requests: write
+  contents: read
+
+jobs:
+  label-issues:
+    if: github.event_name == 'issues'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Label based on issue template
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const issue = context.payload.issue;
+            const title = issue.title.toLowerCase();
+            const body = issue.body || '';
+            const labels = [];
+
+            // Remove needs-triage if issue is being edited
+            if (context.payload.action === 'edited') {
+              try {
+                await github.rest.issues.removeLabel({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: issue.number,
+                  name: 'needs-triage'
+                });
+              } catch (error) {
+                // Label might not exist, ignore
+              }
+            }
+
+            // Component labels based on body content
+            if (body.includes('Web App - Frontend')) {
+              labels.push('frontend');
+            }
+            if (body.includes('Web App - Backend')) {
+              labels.push('backend');
+            }
+            if (body.includes('Notification Proxy')) {
+              labels.push('server');
+            }
+            if (body.includes('CLI Tool')) {
+              labels.push('cli');
+            }
+            if (body.includes('Documentation')) {
+              labels.push('documentation');
+            }
+
+            // Priority labels for feature requests
+            if (body.includes('Priority') && body.includes('Critical')) {
+              labels.push('priority: critical');
+            } else if (body.includes('Priority') && body.includes('Important')) {
+              labels.push('priority: high');
+            }
+
+            // Security-related
+            if (title.includes('security') || body.toLowerCase().includes('security vulnerability')) {
+              labels.push('security');
+            }
+
+            // Performance-related
+            if (title.includes('performance') || title.includes('slow') || body.toLowerCase().includes('performance')) {
+              labels.push('performance');
+            }
+
+            // Good first issue detection
+            if (title.includes('typo') || title.includes('documentation') || body.toLowerCase().includes('good first issue')) {
+              labels.push('good first issue');
+            }
+
+            // Add labels if any were found
+            if (labels.length > 0) {
+              await github.rest.issues.addLabels({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issue.number,
+                labels: labels
+              });
+            }
+
+  label-prs:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Label based on PR content
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const pr = context.payload.pull_request;
+            const title = pr.title.toLowerCase();
+            const body = pr.body || '';
+            const labels = [];
+
+            // Type of change labels
+            if (body.includes('[x] Bug fix')) {
+              labels.push('bug');
+            }
+            if (body.includes('[x] New feature')) {
+              labels.push('enhancement');
+            }
+            if (body.includes('[x] Breaking change')) {
+              labels.push('breaking change');
+            }
+            if (body.includes('[x] Documentation update')) {
+              labels.push('documentation');
+            }
+            if (body.includes('[x] Code refactoring')) {
+              labels.push('refactor');
+            }
+            if (body.includes('[x] Performance improvement')) {
+              labels.push('performance');
+            }
+            if (body.includes('[x] Dependency update')) {
+              labels.push('dependencies');
+            }
+
+            // Component labels
+            if (body.includes('[x] Web App - Frontend')) {
+              labels.push('frontend');
+            }
+            if (body.includes('[x] Web App - Backend')) {
+              labels.push('backend');
+            }
+            if (body.includes('[x] Notification Proxy')) {
+              labels.push('server');
+            }
+            if (body.includes('[x] CLI Tool')) {
+              labels.push('cli');
+            }
+            if (body.includes('[x] Documentation')) {
+              labels.push('documentation');
+            }
+
+            // Conventional commit prefixes in title
+            if (title.startsWith('feat:') || title.startsWith('feature:')) {
+              labels.push('enhancement');
+            }
+            if (title.startsWith('fix:')) {
+              labels.push('bug');
+            }
+            if (title.startsWith('docs:')) {
+              labels.push('documentation');
+            }
+            if (title.startsWith('refactor:')) {
+              labels.push('refactor');
+            }
+            if (title.startsWith('perf:')) {
+              labels.push('performance');
+            }
+            if (title.startsWith('chore:')) {
+              labels.push('chore');
+            }
+
+            // Size labels based on changes
+            const changedFiles = pr.changed_files;
+            const additions = pr.additions;
+            const deletions = pr.deletions;
+            const totalChanges = additions + deletions;
+
+            if (totalChanges < 10) {
+              labels.push('size: XS');
+            } else if (totalChanges < 50) {
+              labels.push('size: S');
+            } else if (totalChanges < 200) {
+              labels.push('size: M');
+            } else if (totalChanges < 500) {
+              labels.push('size: L');
+            } else {
+              labels.push('size: XL');
+            }
+
+            // Add labels if any were found
+            if (labels.length > 0) {
+              await github.rest.issues.addLabels({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: pr.number,
+                labels: labels
+              });
+            }
+
+  welcome-first-time:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Welcome first-time contributors
+        uses: actions/first-interaction@v1
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          issue-message: |
+            👋 Thanks for opening your first issue! We appreciate your contribution to Streaky.
+            
+            A maintainer will review your issue soon. In the meantime, please make sure you've provided all the necessary information.
+            
+            If you're interested in contributing code, check out our [Contributing Guide](https://github.com/0xReLogic/Streaky/blob/main/CONTRIBUTING.md).
+          pr-message: |
+            🎉 Thanks for opening your first pull request! We're excited to review your contribution.
+            
+            Please make sure:
+            - [ ] Your PR follows our [Contributing Guidelines](https://github.com/0xReLogic/Streaky/blob/main/CONTRIBUTING.md)
+            - [ ] All tests pass
+            - [ ] You've updated documentation if needed
+            
+            A maintainer will review your PR soon!
