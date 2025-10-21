@@ -73,7 +73,7 @@ export default function DashboardPage() {
   }
 
   const handleGoToSettings = () => {
-    router.push("/setup");
+    router.push("/settings");
   };
 
   const handleLogout = async () => {
