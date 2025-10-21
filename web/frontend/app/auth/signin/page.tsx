@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { signIn } from "next-auth/react";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 
@@ -21,15 +22,17 @@ export default function SignInPage() {
 
   return (
     <main className="h-screen flex">
-      {/* Left: Spline 3D Scene - White Background */}
-      {/* 
-        TODO: Integrate Spline 3D Scene
-        - Use @splinetool/react-spline/next component
-        - Scene URL: https://prod.spline.design/lB9GTOKCr7v4rBsr/scene.splinecode
-        - Add proper error handling and loading states
-        - Consider lazy loading with dynamic import
-      */}
+      {/* Left: Login Image - White Background */}
       <div className="w-1/2 h-screen relative hidden md:flex items-center justify-center overflow-hidden bg-white">
+        <Image
+          src="/images/loginpage.png"
+          alt="Streaky Login"
+          fill
+          className="object-cover"
+          priority
+          quality={85}
+          sizes="50vw"
+        />
       </div>
 
       {/* Right: Sign In Form - Black Background */}

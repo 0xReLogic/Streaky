@@ -42,12 +42,14 @@ export default function Home() {
 								Get Started Free
 							</Button>
 						</Link>
-						<Button 
-							variant="outline" 
-							className="bg-black text-white hover:bg-gray-900 border border-white/20 text-lg px-8 py-4 h-auto"
-						>
-							Learn More
-						</Button>
+						<Link href="/about">
+							<Button 
+								variant="outline" 
+								className="bg-black text-white hover:bg-gray-900 border border-white/20 text-lg px-8 py-4 h-auto"
+							>
+								Learn More
+							</Button>
+						</Link>
 					</div>
 
 					{/* Stats */}
