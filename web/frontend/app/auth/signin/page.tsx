@@ -22,8 +22,8 @@ export default function SignInPage() {
 
   return (
     <main className="h-screen flex">
-      {/* Left: Login Image - White Background */}
-      <div className="w-1/2 h-screen relative hidden md:flex items-center justify-center overflow-hidden bg-white">
+      {/* Left: Login Image - Black Background */}
+      <div className="w-1/2 h-screen relative hidden md:flex items-center justify-center overflow-hidden bg-black">
         <Image
           src="/images/loginpage.png"
           alt="Streaky Login"
@@ -35,15 +35,15 @@ export default function SignInPage() {
         />
       </div>
 
-      {/* Right: Sign In Form - Black Background */}
-      <div className="w-full md:w-1/2 flex items-center justify-center p-8 bg-black">
+      {/* Right: Sign In Form - White Background */}
+      <div className="w-full md:w-1/2 flex items-center justify-center p-8 bg-white">
         <div className="max-w-md w-full space-y-8">
           {/* Header */}
           <div className="text-center">
-            <h1 className="text-4xl font-bold text-white mb-2">
+            <h1 className="text-4xl font-bold text-black mb-2">
               Welcome to Streaky
             </h1>
-            <p className="text-white/80">
+            <p className="text-black/80">
               Sign in to never lose your GitHub streak again
             </p>
           </div>
@@ -53,7 +53,7 @@ export default function SignInPage() {
             <Button
               onClick={handleSignIn}
               disabled={!agreedToTerms || isLoading}
-              className="w-full h-12 text-lg bg-white text-black hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="w-full h-12 text-lg bg-black text-white hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               {isLoading ? (
                 <span className="flex items-center gap-2">
@@ -97,23 +97,23 @@ export default function SignInPage() {
                 onCheckedChange={(checked: boolean) =>
                   setAgreedToTerms(checked === true)
                 }
-                className="mt-1 border-white/60 bg-white/20 data-[state=checked]:bg-white data-[state=checked]:border-white data-[state=checked]:text-black"
+                className="mt-1 border-black/60 bg-black/20 data-[state=checked]:bg-black data-[state=checked]:border-black data-[state=checked]:text-white"
               />
               <label
                 htmlFor="terms"
-                className="text-sm text-white/90 leading-relaxed cursor-pointer"
+                className="text-sm text-black/90 leading-relaxed cursor-pointer"
               >
                 I agree to the{" "}
                 <a
                   href="/terms"
-                  className="text-white font-semibold hover:underline"
+                  className="text-black font-semibold hover:underline"
                 >
                   Terms of Service
                 </a>{" "}
                 and{" "}
                 <a
                   href="/privacy"
-                  className="text-white font-semibold hover:underline"
+                  className="text-black font-semibold hover:underline"
                 >
                   Privacy Policy
                 </a>
@@ -122,8 +122,8 @@ export default function SignInPage() {
           </div>
 
           {/* Footer */}
-          <div className="pt-8 border-t border-white/20">
-            <p className="text-center text-sm text-white/70">
+          <div className="pt-8 border-t border-black/20">
+            <p className="text-center text-sm text-black/70">
               Secure authentication via GitHub OAuth
             </p>
           </div>
