@@ -1,9 +1,87 @@
-# Cloudflare Worker Development Environment Variables
-# Copy this file to .dev.vars and fill in your values
+# Backend Environment Variables (Cloudflare Workers)
+# Copy this file to .dev.vars and fill in your actual values
 # DO NOT commit .dev.vars to git!
 
-# Encryption key for storing sensitive user data (32 characters minimum)
+# =============================================================================
+# Encryption
+# =============================================================================
+
+# AES-256-GCM encryption key for encrypting user credentials in database
+# CRITICAL: Keep this secret safe! Database leaks are useless without this key
+# Generate with: openssl rand -hex 32
 ENCRYPTION_KEY=your-32-character-encryption-key-here
 
-# Note: GitHub OAuth credentials are only needed in the frontend (Next.js)
-# Users provide their own GitHub PAT in the setup page
+# =============================================================================
+# Authentication
+# =============================================================================
+
+# NextAuth JWT secret for verifying tokens from frontend
+# Must match NEXTAUTH_SECRET in frontend .env.local
+# Generate with: openssl rand -base64 32
+NEXTAUTH_SECRET=your-nextauth-secret-here
+
+# Shared secret for authenticating frontend requests
+# Must match SERVER_SECRET in frontend .env.local
+# Generate with: openssl rand -hex 32
+SERVER_SECRET=your-shared-server-secret
+
+# =============================================================================
+# Notification Proxy (Rust Server)
+# =============================================================================
+
+# URL of your Rust notification proxy server
+# Production: https://your-server.koyeb.app
+# Development: http://localhost:3000
+VPS_URL=https://your-rust-server-url.koyeb.app
+
+# Secret for authenticating requests to notification proxy
+# Must match VPS_SECRET in your Rust server .env
+# Generate with: openssl rand -hex 32
+VPS_SECRET=your-vps-authentication-secret
+
+# =============================================================================
+# Cloudflare D1 Database
+# =============================================================================
+
+# D1 database is configured in wrangler.toml
+# No environment variables needed for D1
+# Create database with: wrangler d1 create streaky-db
+
+# =============================================================================
+# Setup Instructions
+# =============================================================================
+
+# 1. Copy this file:
+#    cp .dev.vars.example .dev.vars
+
+# 2. Generate all secrets:
+#    openssl rand -hex 32   # for ENCRYPTION_KEY
+#    openssl rand -base64 32  # for NEXTAUTH_SECRET
+#    openssl rand -hex 32   # for SERVER_SECRET
+#    openssl rand -hex 32   # for VPS_SECRET
+
+# 3. Create D1 database:
+#    wrangler d1 create streaky-db
+#    # Copy database_id to wrangler.toml
+
+# 4. Run migrations:
+#    wrangler d1 migrations apply streaky-db --local
+
+# 5. Deploy Rust notification proxy first to get VPS_URL
+
+# 6. Update all values in .dev.vars
+
+# 7. Run: npm run dev
+
+# =============================================================================
+# Production Deployment
+# =============================================================================
+
+# For production, set secrets using Wrangler CLI:
+# wrangler secret put ENCRYPTION_KEY
+# wrangler secret put NEXTAUTH_SECRET
+# wrangler secret put SERVER_SECRET
+# wrangler secret put VPS_SECRET
+
+# Set plaintext variables in wrangler.toml or dashboard:
+# VPS_URL=https://your-rust-server-url.koyeb.app

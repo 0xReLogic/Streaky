@@ -33,9 +33,9 @@ The easiest way to keep your streak alive:
 
 - **Zero setup required** - Sign in with GitHub and start monitoring
 - **Always running** - Cloud-based daily checks at 12:00 UTC
-- **Distributed architecture** - Scalable to 40000+ users with isolated processing
+- **Distributed architecture** - Scalable with isolated processing
 - **Multi-platform notifications** - Discord and Telegram support
-- **Beautiful interface** - Modern design with 3D animations
+- **Clean interface** - Modern black and white design
 - **Enterprise-grade security** - JWT authentication, AES-256 encryption, secure key storage
 - **Your data stays encrypted** - Database leaks expose only useless encrypted data
 
@@ -83,7 +83,7 @@ streaky/
 │   │   └── telegram.rs      # Telegram bot API sender
 │   └── Dockerfile           # Container deployment config
 └── web/              # Full-stack web application (Production)
-    ├── frontend/     # Next.js 15 + shadcn/ui + Spline
+    ├── frontend/     # Next.js 15 + shadcn/ui
     └── backend/      # Cloudflare Workers + D1 Database
 ```
 
@@ -97,7 +97,6 @@ streaky/
 - TypeScript
 - Tailwind CSS
 - shadcn/ui components
-- Spline 3D animations
 - NextAuth.js (OAuth)
 
 **Backend API:**
