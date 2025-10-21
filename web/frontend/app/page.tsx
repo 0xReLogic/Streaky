@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import { GitHubStarButton } from "@/components/github-star-button";
 
 export default function Home() {
 	return (
@@ -9,6 +9,7 @@ export default function Home() {
 			<nav className="flex justify-between items-center p-6 border-b border-white/10">
 				<div className="text-2xl font-bold">Streaky</div>
 				<div className="flex gap-4">
+					<GitHubStarButton />
 					<Link href="/auth/signin">
 						<Button variant="outline" className="bg-white text-black hover:bg-gray-200 border-0">
 							Sign In
@@ -20,10 +21,6 @@ export default function Home() {
 			{/* Hero Section */}
 			<section className="flex flex-col items-center justify-center px-6 py-20 text-center">
 				<div className="max-w-4xl mx-auto">
-					{/* Badge */}
-					<Badge className="mb-8 bg-white text-black hover:bg-gray-200 border-0 px-4 py-2 text-sm font-medium">
-						Never lose your GitHub streak again
-					</Badge>
 
 					{/* Main Heading */}
 					<h1 className="text-6xl md:text-8xl font-bold mb-6 tracking-tight">
@@ -77,7 +74,6 @@ export default function Home() {
 					<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
 						{/* Feature 1 */}
 						<div className="bg-white/5 border border-white/10 rounded-xl p-8 hover:bg-white/10 transition-all duration-300">
-							<div className="text-4xl mb-4">🔔</div>
 							<h3 className="text-xl font-semibold mb-3">Smart Notifications</h3>
 							<p className="text-white/70">
 								Get timely alerts via Discord and Telegram when your streak is at risk.
@@ -86,7 +82,6 @@ export default function Home() {
 
 						{/* Feature 2 */}
 						<div className="bg-white/5 border border-white/10 rounded-xl p-8 hover:bg-white/10 transition-all duration-300">
-							<div className="text-4xl mb-4">🔒</div>
 							<h3 className="text-xl font-semibold mb-3">Enterprise Security</h3>
 							<p className="text-white/70">
 								AES-256 encryption, JWT auth, and zero-knowledge architecture protect your data.
@@ -95,7 +90,6 @@ export default function Home() {
 
 						{/* Feature 3 */}
 						<div className="bg-white/5 border border-white/10 rounded-xl p-8 hover:bg-white/10 transition-all duration-300">
-							<div className="text-4xl mb-4">⚡</div>
 							<h3 className="text-xl font-semibold mb-3">Always Running</h3>
 							<p className="text-white/70">
 								Cloud-based daily checks at 12:00 UTC. No setup required, just sign in and go.
@@ -104,7 +98,6 @@ export default function Home() {
 
 						{/* Feature 4 */}
 						<div className="bg-white/5 border border-white/10 rounded-xl p-8 hover:bg-white/10 transition-all duration-300">
-							<div className="text-4xl mb-4">📊</div>
 							<h3 className="text-xl font-semibold mb-3">Beautiful Dashboard</h3>
 							<p className="text-white/70">
 								Track your streaks, contributions, and notification history in one place.
@@ -113,7 +106,6 @@ export default function Home() {
 
 						{/* Feature 5 */}
 						<div className="bg-white/5 border border-white/10 rounded-xl p-8 hover:bg-white/10 transition-all duration-300">
-							<div className="text-4xl mb-4">🌐</div>
 							<h3 className="text-xl font-semibold mb-3">Multi-Platform</h3>
 							<p className="text-white/70">
 								Web app for convenience, CLI for developers who want full control.
@@ -122,10 +114,9 @@ export default function Home() {
 
 						{/* Feature 6 */}
 						<div className="bg-white/5 border border-white/10 rounded-xl p-8 hover:bg-white/10 transition-all duration-300">
-							<div className="text-4xl mb-4">🚀</div>
-							<h3 className="text-xl font-semibold mb-3">Scalable Architecture</h3>
+							<h3 className="text-xl font-semibold mb-3">Modern Architecture</h3>
 							<p className="text-white/70">
-								Built on Cloudflare Workers and Vercel, designed to scale to millions of users.
+								Built with Cloudflare Workers and Vercel for reliable performance.
 							</p>
 						</div>
 					</div>
@@ -152,20 +143,12 @@ export default function Home() {
 			{/* Footer */}
 			<footer className="border-t border-white/10 px-6 py-12">
 				<div className="max-w-6xl mx-auto">
-					<div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+					<div className="grid grid-cols-1 md:grid-cols-3 gap-8">
 						<div>
 							<div className="text-2xl font-bold mb-4">Streaky</div>
 							<p className="text-white/60">
-								Never lose your GitHub streak again
+								GitHub Streak Guardian
 							</p>
-						</div>
-						<div>
-							<h4 className="font-semibold mb-4">Product</h4>
-							<div className="space-y-2 text-white/60">
-								<div>Web App</div>
-								<div>CLI Tool</div>
-								<div>API</div>
-							</div>
 						</div>
 						<div>
 							<h4 className="font-semibold mb-4">Legal</h4>
@@ -177,14 +160,9 @@ export default function Home() {
 						<div>
 							<h4 className="font-semibold mb-4">Connect</h4>
 							<div className="space-y-2 text-white/60">
-								<div>GitHub</div>
-								<div>Discord</div>
-								<div>Support</div>
+								<a href="https://github.com/0xReLogic/Streaky" target="_blank" rel="noopener noreferrer" className="block hover:text-white">GitHub</a>
 							</div>
 						</div>
-					</div>
-					<div className="border-t border-white/10 mt-8 pt-8 text-center text-white/60">
-						<p>Made with love by the Streaky contributors</p>
 					</div>
 				</div>
 			</footer>
