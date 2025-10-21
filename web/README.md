@@ -18,7 +18,7 @@ web/
 - **Framework**: Next.js 15 (App Router)
 - **Language**: TypeScript
 - **Styling**: Tailwind CSS
-- **3D Animation**: Spline React
+- **UI Components**: shadcn/ui
 - **Authentication**: NextAuth.js v5
 - **Deployment**: Vercel
 
@@ -49,20 +49,33 @@ npm install
 2. Set up environment variables:
 
 **Frontend** (`frontend/.env.local`):
-```env
-NEXTAUTH_URL=http://localhost:3000
-NEXTAUTH_SECRET=your-secret-here
-GITHUB_CLIENT_ID=your-github-client-id
-GITHUB_CLIENT_SECRET=your-github-client-secret
-NEXT_PUBLIC_API_URL=http://localhost:8787
+```bash
+# Copy example file
+cp frontend/env.example frontend/.env.local
+
+# Edit .env.local with your values:
+# - NEXT_PUBLIC_API_URL (your Cloudflare Worker URL)
+# - NEXTAUTH_URL (http://localhost:3000 for dev)
+# - NEXTAUTH_SECRET (generate with: openssl rand -base64 32)
+# - AUTH_GITHUB_ID (GitHub OAuth App Client ID)
+# - AUTH_GITHUB_SECRET (GitHub OAuth App Client Secret)
+# - SERVER_SECRET (shared secret with backend)
 ```
 
 **Backend** (`backend/.dev.vars`):
-```env
-ENCRYPTION_KEY=your-32-character-encryption-key
-GITHUB_CLIENT_ID=your-github-client-id
-GITHUB_CLIENT_SECRET=your-github-client-secret
+```bash
+# Copy example file
+cp backend/.dev.vars.example backend/.dev.vars
+
+# Edit .dev.vars with your values:
+# - ENCRYPTION_KEY (generate with: openssl rand -hex 32)
+# - NEXTAUTH_SECRET (must match frontend)
+# - SERVER_SECRET (must match frontend)
+# - VPS_URL (your Rust notification proxy URL)
+# - VPS_SECRET (shared secret with Rust server)
 ```
+
+See `env.example` and `.dev.vars.example` files for detailed instructions.
 
 ### Development
 
@@ -101,19 +114,21 @@ npm run deploy:backend
 
 ## Features
 
-- 🎨 Beautiful 3D landing page with Spline animations
+- 🎨 Clean black and white modern design
 - 🔐 Secure GitHub OAuth authentication
 - 📊 Real-time streak tracking dashboard
 - 🔔 Discord & Telegram notifications
-- ⏰ Daily automated checks at 8 PM UTC
+- ⏰ Daily automated checks at 12:00 UTC
+- 🔒 AES-256-GCM encryption for credentials
 - 📱 Fully responsive design
-- 🚀 Serverless architecture (zero cost for <100k users)
+- 🚀 Serverless architecture (Cloudflare + Vercel)
 
 ## Documentation
 
-- [Requirements](../../.kiro/specs/streaky-web-app/requirements.md)
-- [Design](../../.kiro/specs/streaky-web-app/design.md)
-- [Implementation Tasks](../../.kiro/specs/streaky-web-app/tasks.md)
+- [Main README](../README.md) - Project overview
+- [Contributing Guide](../CONTRIBUTING.md) - How to contribute
+- [Environment Variables](frontend/env.example) - Frontend configuration
+- [Backend Configuration](backend/.dev.vars.example) - Backend setup
 
 ## License
 

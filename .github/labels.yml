@@ -82,40 +82,40 @@
   color: eeeeee
 
 # Priority Labels
-- name: priority: critical
+- name: "priority: critical"
   description: Critical priority
   color: b60205
 
-- name: priority: high
+- name: "priority: high"
   description: High priority
   color: d93f0b
 
-- name: priority: medium
+- name: "priority: medium"
   description: Medium priority
   color: fbca04
 
-- name: priority: low
+- name: "priority: low"
   description: Low priority
   color: 0e8a16
 
 # Size Labels (for PRs)
-- name: size: XS
+- name: "size: XS"
   description: Extra small PR (< 10 lines)
   color: 3cbf00
 
-- name: size: S
+- name: "size: S"
   description: Small PR (10-49 lines)
   color: 5d9801
 
-- name: size: M
+- name: "size: M"
   description: Medium PR (50-199 lines)
   color: 7f7203
 
-- name: size: L
+- name: "size: L"
   description: Large PR (200-499 lines)
   color: a14c05
 
-- name: size: XL
+- name: "size: XL"
   description: Extra large PR (500+ lines)
   color: b60205
 
