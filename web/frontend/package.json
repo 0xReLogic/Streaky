@@ -12,10 +12,6 @@
     "@radix-ui/react-checkbox": "^1.3.3",
     "@radix-ui/react-label": "^2.1.7",
     "@radix-ui/react-slot": "^1.2.3",
-    "@react-three/drei": "^10.7.6",
-    "@react-three/fiber": "^9.4.0",
-    "@splinetool/react-spline": "^4.1.0",
-    "@splinetool/runtime": "^1.10.81",
     "@vercel/analytics": "^1.5.0",
     "@vercel/speed-insights": "^1.2.0",
     "class-variance-authority": "^0.7.1",
@@ -28,8 +24,7 @@
     "react-dom": "19.1.0",
     "sonner": "^2.0.7",
     "swr": "^2.3.6",
-    "tailwind-merge": "^3.3.1",
-    "three": "^0.180.0"
+    "tailwind-merge": "^3.3.1"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",

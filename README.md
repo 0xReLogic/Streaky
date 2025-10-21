@@ -1,6 +1,10 @@
 # Streaky - GitHub Streak Guardian
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![GitHub Stars](https://img.shields.io/github/stars/0xReLogic/Streaky?style=social)](https://github.com/0xReLogic/Streaky/stargazers)
+[![GitHub Issues](https://img.shields.io/github/issues/0xReLogic/Streaky)](https://github.com/0xReLogic/Streaky/issues)
+[![GitHub Pull Requests](https://img.shields.io/github/issues-pr/0xReLogic/Streaky)](https://github.com/0xReLogic/Streaky/pulls)
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/0xReLogic/Streaky)
 
 Never lose your GitHub streak again! Get instant notifications when your contribution streak is at risk.
 
