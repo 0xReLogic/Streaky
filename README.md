@@ -146,8 +146,3 @@ Thanks to all the amazing people who have contributed to Streaky!
 
 This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
 
----
-
-<p align="center">
-  Made with love by the Streaky contributors
-</p>
