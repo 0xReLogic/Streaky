@@ -16,6 +16,9 @@ GITHUB_API_URL = "https://api.github.com/graphql"
 DISCORD_ENABLED = os.getenv("DISCORD_ENABLED")
 DISCORD_WEBHOOK_URL = os.getenv("DISCORD_WEBHOOK_URL")
 
+# Create a session for connection reuse (improves performance)
+SESSION = requests.Session()
+
 def get_todays_contribution_count(username, token):
     """Fetches the total contribution count for today using the GitHub GraphQL API."""
     if not username or not token:
@@ -50,7 +53,7 @@ def get_todays_contribution_count(username, token):
     headers = {"Authorization": f"bearer {token}"}
 
     try:
-        response = requests.post(GITHUB_API_URL, json={'query': query, 'variables': variables}, headers=headers)
+        response = SESSION.post(GITHUB_API_URL, json={'query': query, 'variables': variables}, headers=headers)
         response.raise_for_status()
         data = response.json()
 
@@ -94,7 +97,7 @@ def invoke_discord_webhook(webhook, now_utc, hours, minutes):
         ],
     }
     try:
-        r = requests.post(webhook, json=request_data)
+        r = SESSION.post(webhook, json=request_data)
         if r.status_code == 204:
             print("\nSent Discord Notification Successfully!")
         else:

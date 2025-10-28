@@ -61,11 +61,17 @@ export class GitHubServiceImpl implements GitHubService {
       }
 
       const weeks = response.data.user.contributionsCollection.contributionCalendar.weeks;
-      const todayContribution = weeks
-        .flatMap((week: any) => week.contributionDays)
-        .find((day: any) => day.date === today);
+      
+      // Optimize: Avoid flatMap and find by iterating directly to reduce memory allocations
+      for (const week of weeks) {
+        for (const day of week.contributionDays) {
+          if (day.date === today) {
+            return day.contributionCount || 0;
+          }
+        }
+      }
 
-      return todayContribution?.contributionCount || 0;
+      return 0;
     } catch (error) {
       if (this.isRateLimitError(error)) {
         throw new Error('GitHub API rate limit exceeded');
@@ -107,27 +113,34 @@ export class GitHubServiceImpl implements GitHubService {
       }
 
       const weeks = response.data.user.contributionsCollection.contributionCalendar.weeks;
-      const allDays = weeks
-        .flatMap((week: any) => week.contributionDays)
-        .reverse(); // Start from most recent
-
+      
+      // Optimize: Iterate backwards without creating intermediate arrays
       let streak = 0;
       const today = new Date().toISOString().split('T')[0];
       
-      for (const day of allDays) {
-        // Skip future dates
-        if (day.date > today) continue;
+      // Iterate weeks in reverse order
+      for (let i = weeks.length - 1; i >= 0; i--) {
+        const week = weeks[i];
+        const days = week.contributionDays;
         
-        // If we hit a day with no contributions, streak ends
-        if (day.contributionCount === 0) {
-          // Allow one grace day (today) if it's still early
-          if (day.date === today) {
-            continue;
+        // Iterate days in reverse order within the week
+        for (let j = days.length - 1; j >= 0; j--) {
+          const day = days[j];
+          
+          // Skip future dates
+          if (day.date > today) continue;
+          
+          // If we hit a day with no contributions, streak ends
+          if (day.contributionCount === 0) {
+            // Allow one grace day (today) if it's still early
+            if (day.date === today) {
+              continue;
+            }
+            return streak;
           }
-          break;
+          
+          streak++;
         }
-        
-        streak++;
       }
 
       return streak;

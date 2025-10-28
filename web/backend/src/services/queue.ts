@@ -51,16 +51,17 @@ export interface BatchProgress {
 export async function initializeBatch(env: Env, userIds: string[]): Promise<string> {
 	const batchId = crypto.randomUUID();
 
-	// Bulk insert users to queue
-	for (const userId of userIds) {
+	// Optimize: Use batch() for atomic bulk insert to reduce round trips
+	const statements = userIds.map((userId) => {
 		const queueId = crypto.randomUUID();
-		await env.DB.prepare(
+		return env.DB.prepare(
 			`INSERT INTO cron_queue (id, user_id, batch_id, status)
        VALUES (?, ?, ?, 'pending')`
-		)
-			.bind(queueId, userId, batchId)
-			.run();
-	}
+		).bind(queueId, userId, batchId);
+	});
+
+	// Execute all inserts in a single batch operation
+	await env.DB.batch(statements);
 
 	return batchId;
 }
