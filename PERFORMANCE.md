@@ -45,6 +45,8 @@ const allDays = weeks
 
 // After: Direct iteration
 for (let i = weeks.length - 1; i >= 0; i--) {
+  const week = weeks[i];
+  const days = week.contributionDays;
   for (let j = days.length - 1; j >= 0; j--) {
     // Process directly
   }

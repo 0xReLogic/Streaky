@@ -98,6 +98,9 @@ describe('CachedGitHubService LRU Optimization', () => {
 	it('should clear expired cache entries', async () => {
 		const today = new Date().toISOString().split('T')[0];
 		
+		// Create cache with very short TTL for testing (60ms)
+		const TEST_TTL_MINUTES = 0.001; // 0.001 minutes = 60ms
+		
 		mockFetch.mockResolvedValue({
 			ok: true,
 			json: async () => ({
@@ -119,8 +122,7 @@ describe('CachedGitHubService LRU Optimization', () => {
 			})
 		});
 
-		// Create cache with very short TTL (0.001 minutes = 60ms)
-		const service = new CachedGitHubService('test-token', 0.001);
+		const service = new CachedGitHubService('test-token', TEST_TTL_MINUTES);
 		
 		// First call
 		const result1 = await service.getContributionsToday('testuser');
