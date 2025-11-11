@@ -144,5 +144,5 @@ Thanks to all the amazing people who have contributed to Streaky!
 
 ## License
 
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details..
 
