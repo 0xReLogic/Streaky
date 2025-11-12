@@ -27,7 +27,7 @@ web/
 - **Language**: TypeScript
 - **Framework**: Hono
 - **Database**: Cloudflare D1 (SQLite)
-- **Cron**: Cloudflare Triggers (8 PM UTC daily)
+- **Cron**: Cloudflare Triggers (12:00 UTC daily)
 
 ## Getting Started
 
