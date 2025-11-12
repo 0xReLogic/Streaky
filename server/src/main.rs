@@ -37,7 +37,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let vps_secret = env::var("VPS_SECRET")
         .expect("VPS_SECRET environment variable is required");
     let port = env::var("PORT")
-        .unwrap_or_else(|_| "3000".to_string())
+        .unwrap_or_else(|_| "8000".to_string())
         .parse::<u16>()
         .expect("PORT must be a valid number");
 
@@ -83,7 +83,6 @@ mod tests {
     #[test]
     fn test_app_state_creation() {
         // This test just verifies the structs can be created
-        // We can't easily test the full app without environment variables
         assert!(true);
     }
 }
