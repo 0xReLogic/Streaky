@@ -72,10 +72,10 @@ export default function AboutPage() {
             </div>
 
             <div className="bg-white/5 border border-white/10 rounded-xl p-6">
-              <h3 className="text-xl font-semibold mb-3">3. Automated Daily Checks</h3>
+              <h3 className="text-xl font-semibold mb-3">3. Automated Checks</h3>
               <p className="text-white/70">
-                Our system checks your contributions daily at 12:00 UTC. If you have not 
-                contributed yet, you will receive a timely reminder.
+                Our system checks your contributions hourly and sends reminders at your selected UTC hour.
+                If you have not contributed yet, you will receive a timely reminder.
               </p>
             </div>
 
