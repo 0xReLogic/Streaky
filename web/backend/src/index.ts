@@ -163,7 +163,7 @@ export default {
 				 FROM users
 				 WHERE is_active = 1
 				   AND github_pat IS NOT NULL
-				   AND reminder_utc_hour = ?`
+				   AND COALESCE(reminder_utc_hour, 12) = ?`
 			)
 				.bind(currentHour)
 				.all();
