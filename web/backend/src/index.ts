@@ -68,7 +68,7 @@ app.post('/api/cron/trigger', async (c) => {
 	}
 
 	try {
-		// Query active users
+		// Query active users (manual trigger processes everyone regardless of reminder hour)
 		const usersResult = await c.env.DB.prepare(
 			`SELECT id FROM users WHERE is_active = 1 AND github_pat IS NOT NULL`
 		).all();
@@ -86,7 +86,7 @@ app.post('/api/cron/trigger', async (c) => {
 		// Trigger distributed processing via Service Bindings
 		// Each fetch = SEPARATE Worker instance! Atomic claim ✅
 		for (let i = 0; i < userIds.length; i++) {
-			const queueItem = await claimNextPendingUserAtomic(c.env);
+			const queueItem = await claimNextPendingUserAtomic(c.env, batchId);
 			if (!queueItem) break;
 
 			c.executionCtx.waitUntil(
@@ -156,15 +156,22 @@ export default {
 		console.log('[Scheduled] Cron trigger fired:', event.cron);
 
 		try {
-			// Query active users with GitHub PAT configured
+			// Per-user reminders: select users whose reminder_utc_hour matches the current UTC hour.
+			const currentHour = new Date().getUTCHours(); // 0..23
 			const usersResult = await env.DB.prepare(
-				`SELECT id FROM users WHERE is_active = 1 AND github_pat IS NOT NULL`
-			).all();
+				`SELECT id
+				 FROM users
+				 WHERE is_active = 1
+				   AND github_pat IS NOT NULL
+				   AND reminder_utc_hour = ?`
+			)
+				.bind(currentHour)
+				.all();
 
 			const userIds = (usersResult.results || []).map((row: any) => row.id as string);
 
 			if (userIds.length === 0) {
-				console.log('[Scheduled] No active users to process');
+				console.log(`[Scheduled] No users to process for UTC hour ${currentHour}`);
 				return;
 			}
 
@@ -206,7 +213,7 @@ export default {
 			console.log(`[Scheduled] Dispatching ${userIds.length} users via Service Bindings`);
 			
 			for (let i = 0; i < userIds.length; i++) {
-				const queueItem = await claimNextPendingUserAtomic(env);
+				const queueItem = await claimNextPendingUserAtomic(env, batchId);
 				if (!queueItem) {
 					console.log(`[Scheduled] No more pending users in queue`);
 					break;

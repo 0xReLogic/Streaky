@@ -5,7 +5,7 @@ export async function GET() {
   const session = await auth();
   
   if (!session?.user?.username) {
-    return NextResponse.json({ hasSetup: false }, { status: 200 });
+    return NextResponse.json({ hasSetup: false, reminderUtcHour: 12 }, { status: 200 });
   }
 
   try {
@@ -13,11 +13,11 @@ export async function GET() {
     const serverSecret = process.env.SERVER_SECRET;
 
     if (!serverSecret) {
-      return NextResponse.json({ hasSetup: false }, { status: 200 });
+      return NextResponse.json({ hasSetup: false, reminderUtcHour: 12 }, { status: 200 });
     }
 
-    // Check if user has GitHub PAT configured
-    const response = await fetch(`${apiUrl}/api/user/dashboard`, {
+    // Lightweight check (no GitHub API calls)
+    const response = await fetch(`${apiUrl}/api/user/preferences`, {
       method: 'GET',
       headers: {
         'X-Server-Secret': serverSecret,
@@ -27,14 +27,14 @@ export async function GET() {
     });
 
     if (response.ok) {
-      // User has data, setup is complete
-      return NextResponse.json({ hasSetup: true }, { status: 200 });
-    } else {
-      // User not found or no PAT configured
-      return NextResponse.json({ hasSetup: false }, { status: 200 });
+      const data = await response.json();
+      return NextResponse.json(
+        { hasSetup: !!data?.hasPat, reminderUtcHour: typeof data?.reminderUtcHour === 'number' ? data.reminderUtcHour : 12 },
+        { status: 200 }
+      );
     }
   } catch (error) {
     console.error('Error checking user status:', error);
-    return NextResponse.json({ hasSetup: false }, { status: 200 });
+    return NextResponse.json({ hasSetup: false, reminderUtcHour: 12 }, { status: 200 });
   }
 }

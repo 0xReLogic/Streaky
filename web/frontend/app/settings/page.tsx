@@ -24,6 +24,8 @@ export default function SettingsPage() {
   const [discordWebhook, setDiscordWebhook] = useState("");
   const [telegramToken, setTelegramToken] = useState("");
   const [telegramChatId, setTelegramChatId] = useState("");
+  const [reminderUtcHour, setReminderUtcHour] = useState<number>(12);
+  const [initialReminderUtcHour, setInitialReminderUtcHour] = useState<number>(12);
   const [isLoading, setIsLoading] = useState(false);
   const [isCheckingStatus, setIsCheckingStatus] = useState(true);
 
@@ -37,6 +39,11 @@ export default function SettingsPage() {
           if (!data.hasSetup) {
             router.push("/setup");
             return;
+          }
+
+          if (typeof data.reminderUtcHour === "number") {
+            setReminderUtcHour(data.reminderUtcHour);
+            setInitialReminderUtcHour(data.reminderUtcHour);
           }
         } catch (error) {
           console.error("Error checking user status:", error);
@@ -95,7 +102,8 @@ export default function SettingsPage() {
       return false;
     }
 
-    if (!githubPat && !discordWebhook && !telegramToken) {
+    const reminderChanged = reminderUtcHour !== initialReminderUtcHour;
+    if (!githubPat && !discordWebhook && !telegramToken && !reminderChanged) {
       toast.error("Please update at least one field");
       return false;
     }
@@ -123,6 +131,7 @@ export default function SettingsPage() {
           discordWebhook: discordWebhook || undefined,
           telegramToken: telegramToken || undefined,
           telegramChatId: telegramChatId || undefined,
+          reminderUtcHour: reminderUtcHour !== initialReminderUtcHour ? reminderUtcHour : undefined,
         }),
       });
 
@@ -138,6 +147,7 @@ export default function SettingsPage() {
       setDiscordWebhook("");
       setTelegramToken("");
       setTelegramChatId("");
+      setInitialReminderUtcHour(reminderUtcHour);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "An error occurred");
     } finally {
@@ -255,6 +265,33 @@ export default function SettingsPage() {
                       placeholder="ghp_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
                       className="bg-gray-50 border-2 border-gray-200 text-black placeholder:text-gray-400 focus:border-black focus:ring-0 h-12"
                     />
+                  </div>
+                </div>
+
+                {/* Reminder Hour Section */}
+                <div className="space-y-4 pb-8 border-b border-gray-200">
+                  <div>
+                    <Label
+                      htmlFor="reminderUtcHour"
+                      className="text-black text-lg font-bold"
+                    >
+                      Reminder UTC Hour (0–23)
+                    </Label>
+                    <p className="text-gray-600 text-sm mt-2 mb-3">
+                      Choose the UTC hour when the hourly cron should check your streak for notifications.
+                    </p>
+                    <select
+                      id="reminderUtcHour"
+                      value={reminderUtcHour}
+                      onChange={(e) => setReminderUtcHour(Number(e.target.value))}
+                      className="w-full bg-gray-50 border-2 border-gray-200 text-black placeholder:text-gray-400 focus:border-black focus:ring-0 h-12 rounded-md px-3"
+                    >
+                      {Array.from({ length: 24 }).map((_, h) => (
+                        <option key={h} value={h}>
+                          {String(h).padStart(2, "0")}:00 UTC
+                        </option>
+                      ))}
+                    </select>
                   </div>
                 </div>
 

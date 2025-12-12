@@ -16,22 +16,24 @@ export interface QueueItem {
  * Atomically claim the next pending user by setting status to 'processing'
  * and returning the claimed row in a single statement to avoid races.
  */
-export async function claimNextPendingUserAtomic(env: Env): Promise<QueueItem | null> {
-    const result = await env.DB.prepare(
-        `WITH next AS (
-            SELECT id FROM cron_queue
-            WHERE status = 'pending'
-            ORDER BY created_at ASC
-            LIMIT 1
-        )
-        UPDATE cron_queue
-        SET status = 'processing', started_at = datetime('now')
-        WHERE id IN (SELECT id FROM next)
-        RETURNING id, user_id, batch_id`
-    ).all<QueueItem>();
+export async function claimNextPendingUserAtomic(env: Env, batchId: string): Promise<QueueItem | null> {
+	const result = await env.DB.prepare(
+		`WITH next AS (
+			SELECT id FROM cron_queue
+			WHERE status = 'pending' AND batch_id = ?
+			ORDER BY created_at ASC
+			LIMIT 1
+		)
+		UPDATE cron_queue
+		SET status = 'processing', started_at = datetime('now')
+		WHERE id IN (SELECT id FROM next)
+		RETURNING id, user_id, batch_id`
+	)
+		.bind(batchId)
+		.all<QueueItem>();
 
-    const row = (result.results || [])[0] as QueueItem | undefined;
-    return row ?? null;
+	const row = (result.results || [])[0] as QueueItem | undefined;
+	return row ?? null;
 }
 
 export interface BatchProgress {

@@ -6,6 +6,10 @@ This directory contains SQL migration files for the Streaky D1 database.
 
 - `0001_create_users_table.sql` - Creates users table with indexes and triggers
 - `0002_create_notifications_table.sql` - Creates notifications table with indexes
+- `0003_add_github_pat_column.sql` - Adds GitHub PAT column to users table
+- `0004_create_cron_queue_table.sql` - Creates cron_queue table for distributed processing
+- `0005_add_queue_indexes.sql` - Adds cron_queue performance indexes
+- `0006_add_reminder_utc_hour.sql` - Adds per-user reminder UTC hour (0-23)
 
 ## Running Migrations
 
