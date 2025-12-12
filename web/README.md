@@ -27,7 +27,7 @@ web/
 - **Language**: TypeScript
 - **Framework**: Hono
 - **Database**: Cloudflare D1 (SQLite)
-- **Cron**: Cloudflare Triggers (12:00 UTC daily)
+- **Cron**: Cloudflare Triggers (hourly). Users choose a reminder UTC hour (0–23); checks run at that hour.
 
 ## Getting Started
 
@@ -118,7 +118,7 @@ npm run deploy:backend
 - 🔐 Secure GitHub OAuth authentication
 - 📊 Real-time streak tracking dashboard
 - 🔔 Discord & Telegram notifications
-- ⏰ Daily automated checks at 12:00 UTC
+- ⏰ Hourly scheduling with per-user reminder UTC hour (0–23)
 - 🔒 AES-256-GCM encryption for credentials
 - 📱 Fully responsive design
 - 🚀 Serverless architecture (Cloudflare + Vercel)

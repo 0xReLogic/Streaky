@@ -94,7 +94,7 @@ export default function Home() {
 						<div className="bg-white/5 border border-white/10 rounded-xl p-8 hover:bg-white/10 transition-all duration-300">
 							<h3 className="text-xl font-semibold mb-3">Always Running</h3>
 							<p className="text-white/70">
-								Cloud-based hourly checks. Choose your reminder UTC hour in settings—just sign in and go.
+								Cloud-based hourly checks. Choose your reminder UTC hour in settings just sign in and go.
 							</p>
 						</div>
 

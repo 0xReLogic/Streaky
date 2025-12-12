@@ -18,7 +18,7 @@
  * Removal Target: 2025-11-02 (after stability confirmed)
  * 
  * Original Purpose:
- * Runs daily at 8 PM UTC to check all users' GitHub contributions
+ * Legacy note: this archived implementation used to run daily at 8 PM UTC to check all users' GitHub contributions
  * Sends notifications if no contributions made today
  * 
  * Limitation:

@@ -36,7 +36,7 @@ We understand you're trusting us with sensitive credentials (GitHub PAT, Discord
 The easiest way to keep your streak alive:
 
 - **Zero setup required** - Sign in with GitHub and start monitoring
-- **Always running** - Cloud-based daily checks at 12:00 UTC
+- **Always running** - Cloud-based hourly scheduling with per-user reminder UTC hour (default 12:00 UTC)
 - **Distributed architecture** - Scalable with isolated processing
 - **Multi-platform notifications** - Discord and Telegram support
 - **Clean interface** - Modern black and white design

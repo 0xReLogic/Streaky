@@ -145,7 +145,7 @@ export default function PrivacyPolicy() {
             </h2>
             <p className="mb-4">We use your information to:</p>
             <ul className="list-disc pl-6 space-y-2">
-              <li>Check your GitHub contribution streak daily at 8 PM UTC</li>
+              <li>Check your GitHub contribution streak on an hourly schedule and send reminders at your selected UTC hour</li>
               <li>Send notifications via Discord and/or Telegram when your streak is at risk</li>
               <li>Display your current streak and statistics on the dashboard</li>
               <li>Authenticate your account via GitHub OAuth</li>
