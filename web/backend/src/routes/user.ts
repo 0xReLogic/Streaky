@@ -24,7 +24,7 @@ user.post('/preferences', authMiddleware, async (c) => {
 		}
 
 		const body = await c.req.json();
-		const { githubPat, discordWebhook, telegramToken, telegramChatId } = body;
+		const { githubPat, discordWebhook, telegramToken, telegramChatId, reminderUtcHour } = body;
 
 		// Use authenticated user's GitHub username
 		const githubUsername = authUser.githubUsername;
@@ -57,6 +57,14 @@ user.post('/preferences', authMiddleware, async (c) => {
 			return c.json({ error: 'Invalid Telegram chat ID format' }, 400);
 		}
 
+		// Validate reminder UTC hour (0-23)
+		if (reminderUtcHour !== undefined) {
+			const n = Number(reminderUtcHour);
+			if (!Number.isInteger(n) || n < 0 || n > 23) {
+				return c.json({ error: 'Invalid reminder UTC hour (must be integer 0-23)' }, 400);
+			}
+		}
+
 		// Encrypt sensitive data
 		const encryptionService = await createEncryptionService(c.env.ENCRYPTION_KEY);
 
@@ -86,6 +94,10 @@ user.post('/preferences', authMiddleware, async (c) => {
 				updates.push('telegram_chat_id = ?');
 				values.push(encryptedTelegramChatId);
 			}
+				if (reminderUtcHour !== undefined) {
+					updates.push('reminder_utc_hour = ?');
+					values.push(Number(reminderUtcHour));
+				}
 
 			if (updates.length > 0) {
 				updates.push("updated_at = datetime('now')");
@@ -99,8 +111,8 @@ user.post('/preferences', authMiddleware, async (c) => {
 			// Create new user with authenticated user ID
 			await c.env.DB.prepare(
 				`
-        INSERT INTO users (id, github_username, github_id, github_pat, discord_webhook, telegram_token, telegram_chat_id, is_active)
-        VALUES (?, ?, ?, ?, ?, ?, ?, 1)
+        INSERT INTO users (id, github_username, github_id, github_pat, discord_webhook, telegram_token, telegram_chat_id, reminder_utc_hour, is_active)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1)
       `
 			)
 				.bind(
@@ -110,7 +122,8 @@ user.post('/preferences', authMiddleware, async (c) => {
 					encryptedGithubPat,
 					encryptedDiscord,
 					encryptedTelegramToken,
-					encryptedTelegramChatId
+						encryptedTelegramChatId,
+						reminderUtcHour !== undefined ? Number(reminderUtcHour) : 12
 				)
 				.run();
 		}
@@ -127,6 +140,47 @@ user.post('/preferences', authMiddleware, async (c) => {
 			},
 			500
 		);
+	}
+});
+
+/**
+ * GET /api/user/preferences
+ * Lightweight preferences status for UI (no GitHub API calls)
+ */
+user.get('/preferences', authMiddleware, async (c) => {
+	try {
+		const authUser = getAuthUser(c);
+		if (!authUser) {
+			return c.json({ error: 'Unauthorized' }, 401);
+		}
+
+		const userResult = await c.env.DB.prepare(
+			`SELECT github_pat, discord_webhook, telegram_token, telegram_chat_id, reminder_utc_hour
+			 FROM users
+			 WHERE id = ? OR github_username = ?`
+		)
+			.bind(authUser.id, authUser.githubUsername)
+			.first();
+
+		if (!userResult) {
+			return c.json({
+				hasPat: false,
+				hasDiscord: false,
+				hasTelegram: false,
+				reminderUtcHour: 12,
+			});
+		}
+
+		const u = userResult as any;
+		return c.json({
+			hasPat: !!u.github_pat,
+			hasDiscord: !!u.discord_webhook,
+			hasTelegram: !!(u.telegram_token && u.telegram_chat_id),
+			reminderUtcHour: typeof u.reminder_utc_hour === 'number' ? u.reminder_utc_hour : Number(u.reminder_utc_hour) || 12,
+		});
+	} catch (error) {
+		console.error('Error fetching preferences status:', error);
+		return c.json({ error: 'Failed to fetch preferences' }, 500);
 	}
 });
 
