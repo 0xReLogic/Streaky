@@ -11,7 +11,7 @@ import { LoadingSpinner } from "@/components/loading-spinner";
 import React from "react";
 
 export default function SetupPage() {
-  const { data: session, status } = useSession();
+  const { status } = useSession();
   const router = useRouter();
 
   const [githubPat, setGithubPat] = useState("");
