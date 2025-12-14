@@ -11,6 +11,63 @@ import { authMiddleware, getAuthUser, AuthUser } from '../middleware/auth';
 
 const user = new Hono<{ Bindings: Env; Variables: { user: AuthUser } }>();
 
+function isServerSecretValid(c: any): boolean {
+	const serverSecret = c.req.header('X-Server-Secret');
+	return !!(serverSecret && c.env?.SERVER_SECRET && serverSecret === c.env.SERVER_SECRET);
+}
+
+async function resolveUserRow(c: any, authUser: AuthUser): Promise<any | null> {
+	let row = await c.env.DB.prepare(`SELECT * FROM users WHERE github_id = ?`)
+		.bind(authUser.id)
+		.first();
+
+	if (row) {
+		if (row.github_username !== authUser.githubUsername) {
+			await c.env.DB.prepare(
+				`UPDATE users SET github_username = ?, updated_at = datetime('now') WHERE id = ?`
+			)
+				.bind(authUser.githubUsername, row.id)
+				.run();
+			row.github_username = authUser.githubUsername;
+		}
+		return row;
+	}
+
+	if (!isServerSecretValid(c)) {
+		return null;
+	}
+
+	row = await c.env.DB.prepare(`SELECT * FROM users WHERE github_username = ?`)
+		.bind(authUser.githubUsername)
+		.first();
+
+	if (!row) {
+		return null;
+	}
+
+	if (row.github_id && row.github_id !== authUser.id) {
+		return null;
+	}
+
+	const conflict = await c.env.DB.prepare(`SELECT id FROM users WHERE github_id = ?`)
+		.bind(authUser.id)
+		.first();
+
+	if (conflict && conflict.id !== row.id) {
+		return null;
+	}
+
+	await c.env.DB.prepare(
+		`UPDATE users SET github_id = ?, github_username = ?, updated_at = datetime('now') WHERE id = ?`
+	)
+		.bind(authUser.id, authUser.githubUsername, row.id)
+		.run();
+
+	row.github_id = authUser.id;
+	row.github_username = authUser.githubUsername;
+	return row;
+}
+
 /**
  * POST /api/user/preferences
  * Update user notification preferences
@@ -28,9 +85,10 @@ user.post('/preferences', authMiddleware, async (c) => {
 
 		// Use authenticated user's GitHub username
 		const githubUsername = authUser.githubUsername;
+		const githubId = authUser.id;
 
 		// Check if user exists first
-		const existingUser = await c.env.DB.prepare(`SELECT id, github_pat FROM users WHERE github_username = ?`).bind(githubUsername).first();
+		const existingUser = await resolveUserRow(c, authUser);
 
 		// If user doesn't exist, PAT is required
 		if (!existingUser && !githubPat) {
@@ -78,6 +136,11 @@ user.post('/preferences', authMiddleware, async (c) => {
 			const updates: string[] = [];
 			const values: any[] = [];
 
+			updates.push('github_username = ?');
+			values.push(githubUsername);
+			updates.push('github_id = ?');
+			values.push(githubId);
+
 			if (encryptedGithubPat) {
 				updates.push('github_pat = ?');
 				values.push(encryptedGithubPat);
@@ -99,16 +162,15 @@ user.post('/preferences', authMiddleware, async (c) => {
 					values.push(Number(reminderUtcHour));
 				}
 
-			if (updates.length > 0) {
-				updates.push("updated_at = datetime('now')");
-				values.push(githubUsername);
+			updates.push("updated_at = datetime('now')");
+			values.push(existingUser.id);
 
-				await c.env.DB.prepare(`UPDATE users SET ${updates.join(', ')} WHERE github_username = ?`)
-					.bind(...values)
-					.run();
-			}
+			await c.env.DB.prepare(`UPDATE users SET ${updates.join(', ')} WHERE id = ?`)
+				.bind(...values)
+				.run();
 		} else {
 			// Create new user with authenticated user ID
+			const newId = crypto.randomUUID();
 			await c.env.DB.prepare(
 				`
         INSERT INTO users (id, github_username, github_id, github_pat, discord_webhook, telegram_token, telegram_chat_id, reminder_utc_hour, is_active)
@@ -116,9 +178,9 @@ user.post('/preferences', authMiddleware, async (c) => {
       `
 			)
 				.bind(
-					authUser.id,
+					newId,
 					githubUsername,
-					authUser.id, // Use authenticated user ID
+					githubId,
 					encryptedGithubPat,
 					encryptedDiscord,
 					encryptedTelegramToken,
@@ -154,13 +216,7 @@ user.get('/preferences', authMiddleware, async (c) => {
 			return c.json({ error: 'Unauthorized' }, 401);
 		}
 
-		const userResult = await c.env.DB.prepare(
-			`SELECT github_pat, discord_webhook, telegram_token, telegram_chat_id, reminder_utc_hour
-			 FROM users
-			 WHERE id = ? OR github_username = ?`
-		)
-			.bind(authUser.id, authUser.githubUsername)
-			.first();
+		const userResult = await resolveUserRow(c, authUser);
 
 		if (!userResult) {
 			return c.json({
@@ -196,14 +252,7 @@ user.get('/dashboard', authMiddleware, async (c) => {
 			return c.json({ error: 'Unauthorized' }, 401);
 		}
 
-		// Fetch user from database using authenticated user's ID
-		const userResult = await c.env.DB.prepare(
-			`
-      SELECT * FROM users WHERE id = ? OR github_username = ?
-    `
-		)
-			.bind(authUser.id, authUser.githubUsername)
-			.first();
+		const userResult = await resolveUserRow(c, authUser);
 
 		if (!userResult) {
 			return c.json({ error: 'User not found' }, 404);
