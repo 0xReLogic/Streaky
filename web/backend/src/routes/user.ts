@@ -45,7 +45,12 @@ async function resolveUserRow(c: any, authUser: AuthUser): Promise<any | null> {
 		return null;
 	}
 
-	if (row.github_id && row.github_id !== authUser.id) {
+	const legacyGithubId =
+		!/^\d+$/.test(String(row.github_id || '')) ||
+		row.github_id === row.id ||
+		row.github_id === row.github_username;
+
+	if (row.github_id && row.github_id !== authUser.id && !legacyGithubId) {
 		return null;
 	}
 
