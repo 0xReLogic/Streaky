@@ -9,7 +9,7 @@ use axum::{
     Router,
 };
 use std::{env, sync::Arc};
-use tower_http::{trace::TraceLayer};
+use tower_http::{cors::CorsLayer, trace::TraceLayer};
 use tracing_subscriber;
 
 use crate::{
@@ -62,6 +62,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             state.clone(),
             auth_middleware,
         ))
+        .layer(CorsLayer::permissive())
         .layer(TraceLayer::new_for_http())
         .with_state(state);
 

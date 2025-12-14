@@ -15,7 +15,7 @@ declare module "next-auth" {
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   providers: [GitHub],
-  debug: (globalThis as any).process?.env?.NODE_ENV !== "production", // Enable debug mode
+  debug: true, // Enable debug mode
   callbacks: {
     async signIn() {
       // Note: User creation in backend will be handled in setup page

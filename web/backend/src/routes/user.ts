@@ -28,10 +28,9 @@ user.post('/preferences', authMiddleware, async (c) => {
 
 		// Use authenticated user's GitHub username
 		const githubUsername = authUser.githubUsername;
-		const userId = authUser.id;
 
 		// Check if user exists first
-		const existingUser = await c.env.DB.prepare(`SELECT id, github_pat FROM users WHERE id = ?`).bind(userId).first();
+		const existingUser = await c.env.DB.prepare(`SELECT id, github_pat FROM users WHERE github_username = ?`).bind(githubUsername).first();
 
 		// If user doesn't exist, PAT is required
 		if (!existingUser && !githubPat) {
@@ -79,11 +78,6 @@ user.post('/preferences', authMiddleware, async (c) => {
 			const updates: string[] = [];
 			const values: any[] = [];
 
-			updates.push('github_username = ?');
-			values.push(githubUsername);
-			updates.push('github_id = ?');
-			values.push(userId);
-
 			if (encryptedGithubPat) {
 				updates.push('github_pat = ?');
 				values.push(encryptedGithubPat);
@@ -105,12 +99,14 @@ user.post('/preferences', authMiddleware, async (c) => {
 					values.push(Number(reminderUtcHour));
 				}
 
-			updates.push("updated_at = datetime('now')");
-			values.push(userId);
+			if (updates.length > 0) {
+				updates.push("updated_at = datetime('now')");
+				values.push(githubUsername);
 
-			await c.env.DB.prepare(`UPDATE users SET ${updates.join(', ')} WHERE id = ?`)
-				.bind(...values)
-				.run();
+				await c.env.DB.prepare(`UPDATE users SET ${updates.join(', ')} WHERE github_username = ?`)
+					.bind(...values)
+					.run();
+			}
 		} else {
 			// Create new user with authenticated user ID
 			await c.env.DB.prepare(
@@ -161,9 +157,9 @@ user.get('/preferences', authMiddleware, async (c) => {
 		const userResult = await c.env.DB.prepare(
 			`SELECT github_pat, discord_webhook, telegram_token, telegram_chat_id, reminder_utc_hour
 			 FROM users
-			 WHERE id = ?`
+			 WHERE id = ? OR github_username = ?`
 		)
-			.bind(authUser.id)
+			.bind(authUser.id, authUser.githubUsername)
 			.first();
 
 		if (!userResult) {
@@ -203,10 +199,10 @@ user.get('/dashboard', authMiddleware, async (c) => {
 		// Fetch user from database using authenticated user's ID
 		const userResult = await c.env.DB.prepare(
 			`
-			  SELECT * FROM users WHERE id = ?
-			`
+      SELECT * FROM users WHERE id = ? OR github_username = ?
+    `
 		)
-			.bind(authUser.id)
+			.bind(authUser.id, authUser.githubUsername)
 			.first();
 
 		if (!userResult) {
