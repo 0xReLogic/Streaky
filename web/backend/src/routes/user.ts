@@ -31,7 +31,7 @@ user.post('/preferences', authMiddleware, async (c) => {
 		const userId = authUser.id;
 
 		// Check if user exists first
-		const existingUser = await c.env.DB.prepare(`SELECT id, github_pat FROM users WHERE id = ?`).bind(userId).first();
+		const existingUser = await c.env.DB.prepare(`SELECT id, github_pat FROM users WHERE github_id = ?`).bind(userId).first();
 
 		// If user doesn't exist, PAT is required
 		if (!existingUser && !githubPat) {
@@ -108,7 +108,7 @@ user.post('/preferences', authMiddleware, async (c) => {
 			updates.push("updated_at = datetime('now')");
 			values.push(userId);
 
-			await c.env.DB.prepare(`UPDATE users SET ${updates.join(', ')} WHERE id = ?`)
+			await c.env.DB.prepare(`UPDATE users SET ${updates.join(', ')} WHERE github_id = ?`)
 				.bind(...values)
 				.run();
 		} else {
@@ -161,7 +161,7 @@ user.get('/preferences', authMiddleware, async (c) => {
 		const userResult = await c.env.DB.prepare(
 			`SELECT github_pat, discord_webhook, telegram_token, telegram_chat_id, reminder_utc_hour
 			 FROM users
-			 WHERE id = ?`
+			 WHERE github_id = ?`
 		)
 			.bind(authUser.id)
 			.first();
@@ -203,7 +203,7 @@ user.get('/dashboard', authMiddleware, async (c) => {
 		// Fetch user from database using authenticated user's ID
 		const userResult = await c.env.DB.prepare(
 			`
-			  SELECT * FROM users WHERE id = ?
+			  SELECT * FROM users WHERE github_id = ?
 			`
 		)
 			.bind(authUser.id)
