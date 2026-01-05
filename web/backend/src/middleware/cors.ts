@@ -8,7 +8,6 @@ import { Context, Next } from 'hono';
 const ALLOWED_ORIGINS = new Set([
 	'http://localhost:3000',
 	'https://streakyy.vercel.app',
-	// Add your actual Vercel domain here
 ]);
 
 /**
@@ -30,7 +29,7 @@ export async function corsMiddleware(c: Context, next: Next) {
 
 	// Handle preflight requests
 	if (c.req.method === 'OPTIONS') {
-		return c.text('', 204);
+		return new Response(null, { status: 204 });
 	}
 
 	await next();
