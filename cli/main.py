@@ -68,7 +68,7 @@ def get_todays_contribution_count(username, token):
     except Exception as e:
         print(f"An unexpected error occurred: {e}")
         return None
-    
+
 def invoke_discord_webhook(webhook, now_utc, hours, minutes):
     DISCORD_ERROR = "\nDiscord Notification Failed"
     if not webhook:
@@ -110,7 +110,7 @@ def invoke_discord_webhook(webhook, now_utc, hours, minutes):
 def main():
     today_utc_str = datetime.now(timezone.utc).strftime('%Y-%m-%d')
     print(f"Checking contributions for {GITHUB_USERNAME} on {today_utc_str} (UTC)...")
-    
+
     contribution_count = get_todays_contribution_count(GITHUB_USERNAME, GITHUB_TOKEN)
 
     if contribution_count is None:
@@ -125,7 +125,7 @@ def main():
         now_utc = datetime.now(timezone.utc)
         reset_time_utc = (now_utc + timedelta(days=1)).replace(hour=0, minute=0, second=0, microsecond=0)
         time_remaining = reset_time_utc - now_utc
-        
+
         hours, remainder = divmod(time_remaining.seconds, 3600)
         minutes, _ = divmod(remainder, 60)
 
@@ -133,8 +133,7 @@ def main():
         print(f"Time remaining until reset: {hours} hours, {minutes} minutes.")
         print("Push a commit soon to keep your streak alive! 😨")
         if DISCORD_ENABLED == "true":
-                invoke_discord_webhook(DISCORD_WEBHOOK_URL, now_utc, hours, minutes)
-    
+            invoke_discord_webhook(DISCORD_WEBHOOK_URL, now_utc, hours, minutes)
 
     # Footer watermark
     print("\nProject: https://github.com/0xReLogic/github-streak-alert")

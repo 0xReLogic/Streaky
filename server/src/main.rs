@@ -77,8 +77,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
 #[cfg(test)]
 mod tests {
-
-
     #[test]
     fn test_app_state_creation() {
         // This test just verifies the structs can be created
