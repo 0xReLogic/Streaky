@@ -6,15 +6,13 @@ on:
   pull_request:
     types: [opened, edited, synchronize]
 
-permissions:
-  issues: write
-  pull-requests: write
-  contents: read
-
 jobs:
   label-issues:
     if: github.event_name == 'issues'
     runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      contents: read
     steps:
       - name: Label based on issue template
         uses: actions/github-script@v7
@@ -91,6 +89,9 @@ jobs:
   label-prs:
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+      contents: read
     steps:
       - name: Label based on PR content
         uses: actions/github-script@v7
@@ -191,6 +192,9 @@ jobs:
 
   welcome-first-time:
     runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      pull-requests: write
     steps:
       - name: Welcome first-time contributors
         uses: actions/first-interaction@v1

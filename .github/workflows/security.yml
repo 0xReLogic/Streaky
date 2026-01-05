@@ -8,11 +8,6 @@ on:
   schedule:
     - cron: '0 6 * * 1' # Weekly on Monday 6 AM UTC
 
-permissions:
-  contents: read
-  security-events: write
-  actions: read
-
 jobs:
   # ============================================
   # CodeQL Analysis
@@ -20,6 +15,10 @@ jobs:
   codeql:
     name: CodeQL Analysis
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+      actions: read
     strategy:
       fail-fast: false
       matrix:
@@ -49,6 +48,8 @@ jobs:
     name: Dependency Review
     runs-on: ubuntu-latest
     if: github.event_name == 'pull_request'
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@v4
       - uses: actions/dependency-review-action@v4
@@ -62,6 +63,8 @@ jobs:
   secrets-scan:
     name: Secret Scanning
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@v4
         with:
@@ -78,6 +81,8 @@ jobs:
   semgrep:
     name: Semgrep SAST
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     container:
       image: semgrep/semgrep
     steps:
@@ -99,6 +104,8 @@ jobs:
   rust-audit:
     name: Rust Security Audit
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     defaults:
       run:
         working-directory: server
@@ -117,6 +124,8 @@ jobs:
   npm-audit:
     name: NPM Security Audit
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     strategy:
       matrix:
         path: ['web/frontend', 'web/backend']
@@ -138,6 +147,8 @@ jobs:
   python-safety:
     name: Python Safety Check
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     defaults:
       run:
         working-directory: cli
