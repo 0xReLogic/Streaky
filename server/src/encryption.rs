@@ -16,7 +16,7 @@ impl EncryptionService {
         } else {
             return Err("Encryption key must be at least 32 characters".into());
         };
-        
+
         let key_bytes = key_str.as_bytes();
         let key_array: [u8; 32] = key_bytes.try_into().map_err(|_| "Invalid key length")?;
         let cipher = Aes256Gcm::new(&key_array.into());
@@ -25,7 +25,8 @@ impl EncryptionService {
 
     pub fn decrypt(&self, encrypted_data: &str) -> Result<String, Box<dyn std::error::Error>> {
         // Decode from base64 (try STANDARD first, fallback to URL_SAFE if needed)
-        let encrypted_bytes = general_purpose::STANDARD.decode(encrypted_data)
+        let encrypted_bytes = general_purpose::STANDARD
+            .decode(encrypted_data)
             .or_else(|_| general_purpose::URL_SAFE.decode(encrypted_data))?;
 
         // Extract IV (first 12 bytes) and ciphertext (rest)
@@ -34,11 +35,13 @@ impl EncryptionService {
         }
 
         let (iv_bytes, ciphertext) = encrypted_bytes.split_at(12);
-        let nonce = iv_bytes.try_into().map_err(|_| "Invalid nonce length")?;
+        let nonce = iv_bytes.into();
 
         // Decrypt
-        let plaintext = self.cipher.decrypt(nonce, ciphertext)
-            .map_err(|e| format!("Decryption failed: {:?}", e))?;
+        let plaintext = self
+            .cipher
+            .decrypt(nonce, ciphertext)
+            .map_err(|e| format!("Decryption failed: {e:?}"))?;
 
         // Convert to string
         let result = String::from_utf8(plaintext)?;

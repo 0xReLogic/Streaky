@@ -1,7 +1,7 @@
-use reqwest::Client;
-use std::time::Duration;
-use serde::Serialize;
 use crate::discord::NotificationMessage;
+use reqwest::Client;
+use serde::Serialize;
+use std::time::Duration;
 
 #[derive(Debug, Serialize)]
 struct TelegramMessage {
@@ -15,12 +15,13 @@ pub struct TelegramService {
 }
 
 impl TelegramService {
-    pub fn new() -> Self {
-        let client = Client::builder()
-            .timeout(Duration::from_secs(10))
-            .build()
-            .expect("Failed to build reqwest client");
-        Self { client }
+    /// Creates a new Telegram service
+    ///
+    /// # Errors
+    /// Returns error if HTTP client fails to build
+    pub fn new() -> Result<Self, reqwest::Error> {
+        let client = Client::builder().timeout(Duration::from_secs(10)).build()?;
+        Ok(Self { client })
     }
 
     pub async fn send_notification(
@@ -42,14 +43,9 @@ impl TelegramService {
             parse_mode: "Markdown".to_string(),
         };
 
-        let url = format!("https://api.telegram.org/bot{}/sendMessage", bot_token);
+        let url = format!("https://api.telegram.org/bot{bot_token}/sendMessage");
 
-        let response = self
-            .client
-            .post(&url)
-            .json(&payload)
-            .send()
-            .await?;
+        let response = self.client.post(&url).json(&payload).send().await?;
 
         if response.status().is_success() {
             tracing::info!("Telegram notification sent successfully");
@@ -57,7 +53,7 @@ impl TelegramService {
         } else {
             let status = response.status();
             let error_text = response.text().await.unwrap_or_default();
-            Err(format!("Telegram API error: {} - {}", status, error_text).into())
+            Err(format!("Telegram API error: {status} - {error_text}").into())
         }
     }
 }
@@ -68,9 +64,8 @@ mod tests {
 
     #[test]
     fn test_telegram_service_creation() {
-        let _service = TelegramService::new();
-        // Just verify it can be created
-        assert!(true);
+        let service = TelegramService::new();
+        assert!(service.is_ok());
     }
 
     #[test]
@@ -82,9 +77,7 @@ mod tests {
             message: "Test message".to_string(),
         };
 
-        let _service = TelegramService::new();
-        // We can't easily test the actual formatting without making it public
-        // But we can verify the service can be created
-        assert!(true);
+        let service = TelegramService::new();
+        assert!(service.is_ok());
     }
 }

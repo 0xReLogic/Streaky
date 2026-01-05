@@ -1,16 +1,13 @@
 use axum::{
     extract::{Request, State},
     http::{HeaderMap, StatusCode},
-    response::Json,
     middleware::Next,
+    response::Json,
 };
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 
-use crate::{
-    discord::NotificationMessage,
-    AppState,
-};
+use crate::{discord::NotificationMessage, AppState};
 
 #[derive(Debug, Deserialize)]
 pub struct NotificationRequest {
@@ -35,14 +32,10 @@ pub async fn auth_middleware(
     request: Request,
     next: Next,
 ) -> Result<axum::response::Response, StatusCode> {
-    let api_secret = headers
-        .get("X-API-Secret")
-        .and_then(|h| h.to_str().ok());
+    let api_secret = headers.get("X-API-Secret").and_then(|h| h.to_str().ok());
 
     match api_secret {
-        Some(secret) if secret == state.vps_secret => {
-            Ok(next.run(request).await)
-        }
+        Some(secret) if secret == state.vps_secret => Ok(next.run(request).await),
         _ => {
             tracing::warn!("Unauthorized request: invalid or missing X-API-Secret");
             Err(StatusCode::UNAUTHORIZED)
@@ -62,7 +55,10 @@ pub async fn send_notification(
     State(state): State<Arc<AppState>>,
     Json(payload): Json<NotificationRequest>,
 ) -> Result<Json<NotificationResponse>, StatusCode> {
-    tracing::info!("Received notification request: type={}", payload.notification_type);
+    tracing::info!(
+        "Received notification request: type={}",
+        payload.notification_type
+    );
 
     let result = match payload.notification_type.as_str() {
         "discord" => handle_discord_notification(&state, &payload).await,
@@ -71,7 +67,7 @@ pub async fn send_notification(
     };
 
     match result {
-        Ok(_) => {
+        Ok(()) => {
             tracing::info!("Notification sent successfully");
             Ok(Json(NotificationResponse {
                 success: true,
@@ -101,7 +97,10 @@ async fn handle_discord_notification(
     let webhook_url = state.encryption.decrypt(encrypted_webhook)?;
 
     // Send notification
-    state.discord.send_notification(&webhook_url, &payload.message).await?;
+    state
+        .discord
+        .send_notification(&webhook_url, &payload.message)
+        .await?;
 
     Ok(())
 }
@@ -125,7 +124,10 @@ async fn handle_telegram_notification(
     let chat_id = state.encryption.decrypt(encrypted_chat_id)?;
 
     // Send notification
-    state.telegram.send_notification(&bot_token, &chat_id, &payload.message).await?;
+    state
+        .telegram
+        .send_notification(&bot_token, &chat_id, &payload.message)
+        .await?;
 
     Ok(())
 }

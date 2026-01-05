@@ -1,6 +1,6 @@
 use reqwest::Client;
-use std::time::Duration;
 use serde::{Deserialize, Serialize};
+use std::time::Duration;
 // use serde_json::json;
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -44,12 +44,13 @@ pub struct DiscordService {
 }
 
 impl DiscordService {
-    pub fn new() -> Self {
-        let client = Client::builder()
-            .timeout(Duration::from_secs(10))
-            .build()
-            .expect("Failed to build reqwest client");
-        Self { client }
+    /// Creates a new Discord service
+    ///
+    /// # Errors
+    /// Returns error if HTTP client fails to build
+    pub fn new() -> Result<Self, reqwest::Error> {
+        let client = Client::builder().timeout(Duration::from_secs(10)).build()?;
+        Ok(Self { client })
     }
 
     pub async fn send_notification(
@@ -60,7 +61,7 @@ impl DiscordService {
         let embed = DiscordEmbed {
             title: "⚠️ GitHub Streak Alert".to_string(),
             description: message.message.clone(),
-            color: 16739947, // 0xff6b6b (red color)
+            color: 16_739_947, // 0xff6b6b (red color)
             fields: vec![
                 DiscordField {
                     name: "GitHub Username".to_string(),
@@ -84,12 +85,7 @@ impl DiscordService {
             username: "Streaky Bot".to_string(),
         };
 
-        let response = self
-            .client
-            .post(webhook_url)
-            .json(&payload)
-            .send()
-            .await?;
+        let response = self.client.post(webhook_url).json(&payload).send().await?;
 
         if response.status().is_success() {
             tracing::info!("Discord notification sent successfully");
@@ -97,7 +93,7 @@ impl DiscordService {
         } else {
             let status = response.status();
             let error_text = response.text().await.unwrap_or_default();
-            Err(format!("Discord API error: {} - {}", status, error_text).into())
+            Err(format!("Discord API error: {status} - {error_text}").into())
         }
     }
 }
@@ -108,9 +104,8 @@ mod tests {
 
     #[test]
     fn test_discord_service_creation() {
-        let _service = DiscordService::new();
-        // Just verify it can be created
-        assert!(true);
+        let service = DiscordService::new();
+        assert!(service.is_ok());
     }
 
     #[test]

@@ -1,7 +1,7 @@
 mod discord;
-mod telegram;
 mod encryption;
 mod handlers;
+mod telegram;
 
 use axum::{
     middleware,
@@ -9,14 +9,13 @@ use axum::{
     Router,
 };
 use std::{env, sync::Arc};
-use tower_http::{trace::TraceLayer};
-use tracing_subscriber;
+use tower_http::trace::TraceLayer;
 
 use crate::{
     discord::DiscordService,
-    telegram::TelegramService,
     encryption::EncryptionService,
     handlers::{auth_middleware, health_check, send_notification},
+    telegram::TelegramService,
 };
 
 pub struct AppState {
@@ -33,18 +32,18 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // Load environment variables
     let encryption_key = env::var("ENCRYPTION_KEY")
-        .expect("ENCRYPTION_KEY environment variable is required");
-    let vps_secret = env::var("VPS_SECRET")
-        .expect("VPS_SECRET environment variable is required");
-    let port = env::var("PORT")
+        .map_err(|_| "ENCRYPTION_KEY environment variable is required")?;
+    let vps_secret =
+        env::var("VPS_SECRET").map_err(|_| "VPS_SECRET environment variable is required")?;
+    let port: u16 = env::var("PORT")
         .unwrap_or_else(|_| "8000".to_string())
-        .parse::<u16>()
-        .expect("PORT must be a valid number");
+        .parse()
+        .map_err(|_| "PORT must be a valid number")?;
 
     // Initialize services
     let encryption = EncryptionService::new(&encryption_key)?;
-    let discord = DiscordService::new();
-    let telegram = TelegramService::new();
+    let discord = DiscordService::new()?;
+    let telegram = TelegramService::new()?;
 
     // Create shared state
     let state = Arc::new(AppState {
@@ -66,10 +65,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .with_state(state);
 
     // Start server
-    let listener = tokio::net::TcpListener::bind(format!("0.0.0.0:{}", port)).await?;
-    
-    tracing::info!("Streaky Notification Proxy starting on port {}", port);
-    
+    let listener = tokio::net::TcpListener::bind(format!("0.0.0.0:{port}")).await?;
+
+    tracing::info!("Streaky Notification Proxy starting on port {port}");
+
     axum::serve(listener, app).await?;
 
     Ok(())
