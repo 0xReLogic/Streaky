@@ -1,0 +1,28 @@
+# CODEOWNERS - Auto-assign reviewers
+# https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+
+# Default owners for everything
+* @0xReLogic
+
+# Frontend
+/web/frontend/ @0xReLogic
+
+# Backend
+/web/backend/ @0xReLogic
+
+# Server (Rust)
+/server/ @0xReLogic
+
+# CLI (Python)
+/cli/ @0xReLogic
+
+# GitHub Actions & CI/CD
+/.github/ @0xReLogic
+
+# Documentation
+*.md @0xReLogic
+/docs/ @0xReLogic
+
+# Security-sensitive files
+.env* @0xReLogic
+**/secrets* @0xReLogic

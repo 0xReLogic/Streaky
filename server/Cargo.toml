@@ -3,6 +3,16 @@ name = "streaky-server"
 version = "0.1.0"
 edition = "2021"
 
+[lints.rust]
+unsafe_code = "forbid"
+
+[lints.clippy]
+all = "warn"
+pedantic = "warn"
+nursery = "warn"
+unwrap_used = "warn"
+expect_used = "warn"
+
 [dependencies]
 axum = "0.7"
 tokio = { version = "1.0", features = ["full"] }
