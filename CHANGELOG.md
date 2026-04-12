@@ -9,12 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Tailwind CSS 4 Migration**: Fully adopted the new CSS-first engine with `@theme` and `@plugin` architecture.
 - **Rust Edition 2024**: Upgraded the server and CI toolchain to support the latest Rust edition.
 - **ESLint Flat Config**: Implemented native Next.js 16 flat configuration for faster and more reliable linting.
-- **Automatic Troubleshooting Log**: Added `maintenance_track.md` to track repository maintenance history.
 
 ### Changed
 - **Next.js 16**: Upgraded the frontend framework to v16 with Turbopack optimizations.
 - **Development Environment**: Standardized monorepo dependency management and caching in GitHub Actions.
-- **Docker Infrastructure**: Updated server base image to `rust:1.85-slim` for Edition 2024 compatibility.
+- **Docker Infrastructure**: Updated server base image to **rust:1.86-slim** for compatibility.
 
 ### Fixed
 - **Security Patches**: Resolved 8 critical and high-severity RUSTSEC vulnerabilities (including `aws-lc-sys`, `bytes`, `quinn-proto`, and `rustls-webpki`).
@@ -38,4 +37,3 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Notifications: Discord and Telegram integration.
 - Distributed Architecture with Service Bindings.
 - Python-based CLI tool.
-
