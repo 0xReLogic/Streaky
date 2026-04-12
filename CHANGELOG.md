@@ -39,5 +39,3 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Distributed Architecture with Service Bindings.
 - Python-based CLI tool.
 
----
-*Created by Antigravity AI*
