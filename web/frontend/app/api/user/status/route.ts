@@ -33,8 +33,12 @@ export async function GET() {
         { status: 200 }
       );
     }
+
+    console.warn(`[status] Upstream backend returned status ${response.status}`);
+    return NextResponse.json({ hasSetup: false, reminderUtcHour: 12 }, { status: 200 });
   } catch (error) {
     console.error('Error checking user status:', error);
     return NextResponse.json({ hasSetup: false, reminderUtcHour: 12 }, { status: 200 });
   }
 }
+
