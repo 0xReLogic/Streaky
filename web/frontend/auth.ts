@@ -14,7 +14,11 @@ declare module "next-auth" {
 }
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
-  providers: [GitHub],
+  providers: [
+    GitHub({
+      issuer: "https://github.com/login/oauth",
+    }),
+  ],
   debug: true, // Enable debug mode
   callbacks: {
     async signIn() {
