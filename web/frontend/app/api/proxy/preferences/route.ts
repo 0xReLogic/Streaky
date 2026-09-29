@@ -10,10 +10,11 @@ export async function POST(request: Request) {
 
   try {
     const body = await request.json();
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? (process.env.NODE_ENV !== 'production' ? 'http://localhost:8787' : undefined);
-    if (!apiUrl) {
+    const rawApiUrl = process.env.NEXT_PUBLIC_API_URL ?? (process.env.NODE_ENV !== 'production' ? 'http://localhost:8787' : undefined);
+    if (!rawApiUrl) {
       return NextResponse.json({ error: 'Server configuration error: NEXT_PUBLIC_API_URL is not set' }, { status: 500 });
     }
+    const apiUrl = rawApiUrl.replace(/\/+$/, '');
     
     // Send user info with server secret for authentication
     const serverSecret = process.env.SERVER_SECRET;

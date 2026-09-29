@@ -9,7 +9,8 @@ export async function GET() {
   }
 
   try {
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8787';
+    const rawApiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8787';
+    const apiUrl = rawApiUrl.replace(/\/+$/, '');
     const serverSecret = process.env.SERVER_SECRET;
 
     if (!serverSecret) {
